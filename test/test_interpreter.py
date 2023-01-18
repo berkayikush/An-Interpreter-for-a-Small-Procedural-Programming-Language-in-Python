@@ -10,10 +10,9 @@ class TestInterpreter(unittest.TestCase):
     def test_interpreter(self):
         text = """
         var(int) x, y;
-        
         x = 2;
-        y = 3;
         
+        y = 3;
         var(int) z = x + y;
         """
         lexer = Lexer(text)
@@ -33,10 +32,9 @@ class TestInterpreter(unittest.TestCase):
     def test_interpreter_2(self):
         text = """
         var(int) x = 4, y = 2;
-        
         x += 3;
-        y -= 1;
         
+        y -= 1;
         var(int) z = x // y;
         """
         lexer = Lexer(text)
@@ -56,10 +54,9 @@ class TestInterpreter(unittest.TestCase):
     def test_interpreter_with_float(self):
         text = """
         var(float) x = 4.0, y = 2.0;
-        
         x += 3.0;
-        y *= 2.0;
         
+        y *= 2.0;
         var(float) z = x / y;
         """
         lexer = Lexer(text)
@@ -124,3 +121,21 @@ class TestInterpreter(unittest.TestCase):
         self.assertEqual(interpreter.GLOBAL_MEMORY["a"], False)
         self.assertEqual(interpreter.GLOBAL_MEMORY["b"], False)
         self.assertEqual(interpreter.GLOBAL_MEMORY["c"], True)
+
+    def test_interpreter_with_plus_assign_and_logical(self):
+        text = """
+        var(int) x = 3, y = 2;
+        x += 3 and y;
+        """
+        lexer = Lexer(text)
+        parser = Parser(lexer)
+        tree = parser.parse()
+
+        semantic_analyzer = SemanticAnalyzer()
+        semantic_analyzer.visit(tree)
+
+        interpreter = Interpreter(tree)
+        interpreter.interpret()
+
+        self.assertEqual(interpreter.GLOBAL_MEMORY["x"], 5)
+        self.assertEqual(interpreter.GLOBAL_MEMORY["y"], 2)

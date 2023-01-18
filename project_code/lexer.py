@@ -96,7 +96,7 @@ class Lexer:
         while self.__current_char is not None and self.__current_char.isspace():
             self.__advance()
 
-    def __handle_multiline_comment(self):  # TODO: MIGHT NEED TO BE FIXED
+    def __handle_multiline_comment(self):
         self.__advance()
         self.__advance()
 
@@ -105,34 +105,6 @@ class Lexer:
 
         self.__advance()
         self.__advance()
-
-    def __convert_to_num(self):
-        num = ""
-
-        while self.__current_char is not None and self.__current_char.isdigit():
-            num += self.__current_char
-            self.__advance()
-
-        if self.__current_char == ".":
-            num += self.__current_char
-            self.__advance()
-
-            while self.__current_char is not None and self.__current_char.isdigit():
-                num += self.__current_char
-                self.__advance()
-
-            return float(num)
-
-        return int(num)
-
-    def __convert_to_id(self):
-        identifier = ""
-
-        while self.__current_char is not None and self.__current_char.isalnum():
-            identifier += self.__current_char
-            self.__advance()
-
-        return identifier
 
     def __is_assignment_operator(self):
         return (
@@ -161,6 +133,34 @@ class Lexer:
 
     def __is_parenthesis(self):
         return self.__current_char in ["(", ")"]
+
+    def __convert_to_num(self):
+        num = ""
+
+        while self.__current_char is not None and self.__current_char.isdigit():
+            num += self.__current_char
+            self.__advance()
+
+        if self.__current_char == ".":
+            num += self.__current_char
+            self.__advance()
+
+            while self.__current_char is not None and self.__current_char.isdigit():
+                num += self.__current_char
+                self.__advance()
+
+            return float(num)
+
+        return int(num)
+
+    def __convert_to_id(self):
+        identifier = ""
+
+        while self.__current_char is not None and self.__current_char.isalnum():
+            identifier += self.__current_char
+            self.__advance()
+
+        return identifier
 
     def __convert_to_arithmetic_operator(self):
         operator = self.__current_char

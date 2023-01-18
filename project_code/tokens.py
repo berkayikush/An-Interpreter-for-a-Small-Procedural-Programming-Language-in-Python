@@ -81,10 +81,9 @@ class Token:
         "not": K_NOT,
     }
 
-    ############
-    # COMMENTS #
-    ############
-    SINGLE_LINE_COMMENT = "SINGLE_LINE_COMMENT"  # "//"
+    ###########
+    # COMMENT #
+    ###########
     MULTI_LINE_COMMENT = "MULTI_LINE_COMMENT"  # "/* */"
 
     def __init__(self, _type, value=None):
