@@ -9,6 +9,7 @@ class ScopeSymbolTable:
         self.__symbols = {
             "int": BuiltInTypeSymbol(Token.K_INT),
             "float": BuiltInTypeSymbol(Token.K_FLOAT),
+            "bool": BuiltInTypeSymbol(Token.K_BOOL),
         }
 
     def add_symbol(self, symbol):

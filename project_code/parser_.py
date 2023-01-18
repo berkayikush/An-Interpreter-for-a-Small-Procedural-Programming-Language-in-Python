@@ -2,12 +2,13 @@ from .tokens import Token
 from .abstract_syntax_tree import (
     VarNode,
     NumberNode,
+    BoolNode,
     UnaryOpNode,
     BinaryOpNode,
     EmptyStatementNode,
     AssignStatementNode,
     VarTypeNode,
-    VarDeclarationStatementNode,
+    VarDeclStatementNode,
     StatementListNode,
     ProgramNode,
 )
@@ -50,7 +51,11 @@ class Parser:
 
     def __factor(self):
         """
-        factor : (INT | FLOAT) | LEFT_PARENTHESIS expr RIGHT_PARENTHESIS | (PLUS | MINUS) factor | variable_name
+        factor : (INT | FLOAT)
+                 | BOOL
+                 | LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS
+                 | (PLUS | MINUS) factor
+                 | variable_name
         """
         token = self.__current_token
 
@@ -58,20 +63,24 @@ class Parser:
             self.__eat(token.type_)
             return NumberNode(num_token=token)
 
+        if token.type_ == Token.BOOL:
+            self.__eat(token.type_)
+            return BoolNode(bool_token=token)
+
         if token.type_ in (Token.PLUS, Token.MINUS):
             self.__eat(token.type_)
             return UnaryOpNode(op_token=token, child_node=self.__factor())
 
         if token.type_ == Token.LEFT_PARENTHESIS:
             self.__eat(Token.LEFT_PARENTHESIS)
-            ast_node = self.__expr()
+            ast_node = self.__logical_expr()
 
             self.__eat(Token.RIGHT_PARENTHESIS)
             return ast_node
 
         return self.__variable_name()
 
-    def __binary_operation(self, func, operations):
+    def __binary_op(self, func, operations):
         left_node = func()
 
         while self.__current_token.type_ in operations:
@@ -86,7 +95,7 @@ class Parser:
         """
         term: factor((MULTIPLICATION | INT_DIVISION | FLOAT_DIVISION | MODULO) factor)*
         """
-        return self.__binary_operation(
+        return self.__binary_op(
             self.__factor,
             (
                 Token.MULTIPLICATION,
@@ -96,11 +105,46 @@ class Parser:
             ),
         )
 
-    def __expr(self):
+    def __arithmetic_expr(self):
         """
-        expr: term((PLUS | MINUS) term)*
+        arithmetic_expr: term((PLUS | MINUS) term)*
         """
-        return self.__binary_operation(self.__term, (Token.PLUS, Token.MINUS))
+        return self.__binary_op(self.__term, (Token.PLUS, Token.MINUS))
+
+    def __comparison_expr(self):
+        """
+        comparison_expr: K_NOT comparison_expr |
+                         arithmetic_expr ((EQUALS | NOT_EQUALS | LESS_THAN
+                                                  | LESS_THAN_OR_EQUALS
+                                                  | GREATER_THAN
+                                                  | GREATER_THAN_OR_EQUALS) arithmetic_expr)*
+        """
+        if self.__current_token.type_ == Token.K_NOT:
+            op_token = self.__current_token
+            self.__eat(Token.K_NOT)
+
+            return UnaryOpNode(op_token, self.__comparison_expr())
+
+        return self.__binary_op(
+            self.__arithmetic_expr,
+            (
+                Token.EQUALS,
+                Token.NOT_EQUALS,
+                Token.LESS_THAN,
+                Token.LESS_THAN_OR_EQUALS,
+                Token.GREATER_THAN,
+                Token.GREATER_THAN_OR_EQUALS,
+            ),
+        )
+
+    def __logical_expr(self):
+        """
+        logical_expr: comparison_expr ((K_AND | K_OR) comparison_expr)*
+        """
+        return self.__binary_op(
+            self.__comparison_expr,
+            (Token.K_AND, Token.K_OR),
+        )
 
     def __empty_statement(self):
         """
@@ -122,48 +166,50 @@ class Parser:
             case Token.PLUS_ASSIGN:
                 self.__eat(Token.PLUS_ASSIGN)
                 right_node = BinaryOpNode(
-                    left_node, Token(Token.PLUS, "+"), self.__expr()
+                    left_node, Token(Token.PLUS, "+"), self.__logical_expr()
                 )
 
             case Token.MINUS_ASSIGN:
                 self.__eat(Token.MINUS_ASSIGN)
                 right_node = BinaryOpNode(
-                    left_node, Token(Token.MINUS, "-"), self.__expr()
+                    left_node, Token(Token.MINUS, "-"), self.__logical_expr()
                 )
 
             case Token.MULTIPLICATION_ASSIGN:
                 self.__eat(Token.MULTIPLICATION_ASSIGN)
                 right_node = BinaryOpNode(
-                    left_node, Token(Token.MULTIPLICATION, "*"), self.__expr()
+                    left_node, Token(Token.MULTIPLICATION, "*"), self.__logical_expr()
                 )
 
             case Token.INT_DIVISION_ASSIGN:
                 self.__eat(Token.INT_DIVISION_ASSIGN)
                 right_node = BinaryOpNode(
-                    left_node, Token(Token.INT_DIVISION, "//"), self.__expr()
+                    left_node, Token(Token.INT_DIVISION, "//"), self.__logical_expr()
                 )
 
             case Token.FLOAT_DIVISION_ASSIGN:
                 self.__eat(Token.FLOAT_DIVISION_ASSIGN)
                 right_node = BinaryOpNode(
-                    left_node, Token(Token.FLOAT_DIVISION, "/"), self.__expr()
+                    left_node, Token(Token.FLOAT_DIVISION, "/"), self.__logical_expr()
                 )
 
             case Token.MODULO_ASSIGN:
                 self.__eat(Token.MODULO_ASSIGN)
                 right_node = BinaryOpNode(
-                    left_node, Token(Token.MODULO, "%"), self.__expr()
+                    left_node,
+                    Token(Token.MODULO, "%"),
+                    self.__logical_expr(),  # TODO: might change it to arithmetic_expr
                 )
 
             case _:
                 self.__eat(Token.ASSIGN)
-                right_node = self.__expr()
+                right_node = self.__logical_expr()
 
         return AssignStatementNode(left_node, op_token, right_node)
 
     def __variable_type(self):
         """
-        variable_type: K_INT | K_FLOAT
+        variable_type: K_INT | K_FLOAT | K_BOOL
         """
         token = self.__current_token
 
@@ -172,8 +218,12 @@ class Parser:
                 self.__eat(Token.K_INT)
                 return VarTypeNode(token)
 
-            case _:
+            case Token.K_FLOAT:
                 self.__eat(Token.K_FLOAT)
+                return VarTypeNode(token)
+
+            case _:
+                self.__eat(Token.K_BOOL)
                 return VarTypeNode(token)
 
     def __variable_declaration_statement(self):
@@ -184,7 +234,7 @@ class Parser:
         self.__eat(Token.K_VAR)
         self.__eat(Token.LEFT_PARENTHESIS)
         type_node = self.__variable_type()
-        variable_declaration_statement_node = VarDeclarationStatementNode(type_node, [])
+        variable_declaration_statement_node = VarDeclStatementNode(type_node, [])
         self.__eat(Token.RIGHT_PARENTHESIS)
 
         variable = self.__variable_name()
@@ -193,7 +243,7 @@ class Parser:
             op_token = self.__current_token
             self.__eat(Token.ASSIGN)
 
-            right_node = self.__expr()
+            right_node = self.__logical_expr()
             variable_declaration_statement_node.variables.append(
                 AssignStatementNode(variable, op_token, right_node)
             )
@@ -208,7 +258,7 @@ class Parser:
                 op_token = self.__current_token
                 self.__eat(Token.ASSIGN)
 
-                right_node = self.__expr()
+                right_node = self.__logical_expr()
                 variable_declaration_statement_node.variables.append(
                     AssignStatementNode(variable, op_token, right_node)
                 )

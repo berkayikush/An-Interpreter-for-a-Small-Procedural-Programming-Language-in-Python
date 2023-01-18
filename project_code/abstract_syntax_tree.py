@@ -20,6 +20,15 @@ class NumberNode(AST):
         return self.__value
 
 
+class BoolNode(AST):
+    def __init__(self, bool_token):
+        self.__value = bool_token.value
+
+    @property
+    def value(self):
+        return self.__value
+
+
 class UnaryOpNode(AST):
     def __init__(self, op_token, child_node):
         self.__op_token = op_token
@@ -85,7 +94,7 @@ class VarTypeNode(AST):
         return self.__value
 
 
-class VarDeclarationStatementNode(AST):
+class VarDeclStatementNode(AST):
     def __init__(self, var_type_node, variables):
         self.__var_type_node = var_type_node
         self.__variables = variables

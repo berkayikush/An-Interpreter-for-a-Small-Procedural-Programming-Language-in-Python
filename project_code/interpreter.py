@@ -21,12 +21,20 @@ class Interpreter(ASTNodeVisitor):
     def visitNumberNode(self, ast_node):
         return ast_node.value
 
+    def visitBoolNode(self, ast_node):
+        if ast_node.value == "true":
+            return True
+
+        return False
+
     def visitUnaryOpNode(self, ast_node):
         match (ast_node.op_token.type_):
             case Token.PLUS:
                 return +self.visit(ast_node.child_node)
             case Token.MINUS:
                 return -self.visit(ast_node.child_node)
+            case Token.K_NOT:
+                return not self.visit(ast_node.child_node)
 
     def visitBinaryOpNode(self, ast_node):
         match (ast_node.op_token.type_):
@@ -42,6 +50,24 @@ class Interpreter(ASTNodeVisitor):
                 return self.visit(ast_node.left_node) / self.visit(ast_node.right_node)
             case Token.MODULO:
                 return self.visit(ast_node.left_node) % self.visit(ast_node.right_node)
+            case Token.EQUALS:
+                return self.visit(ast_node.left_node) == self.visit(ast_node.right_node)
+            case Token.NOT_EQUALS:
+                return self.visit(ast_node.left_node) != self.visit(ast_node.right_node)
+            case Token.LESS_THAN:
+                return self.visit(ast_node.left_node) < self.visit(ast_node.right_node)
+            case Token.LESS_THAN_OR_EQUALS:
+                return self.visit(ast_node.left_node) <= self.visit(ast_node.right_node)
+            case Token.GREATER_THAN:
+                return self.visit(ast_node.left_node) > self.visit(ast_node.right_node)
+            case Token.GREATER_THAN_OR_EQUALS:
+                return self.visit(ast_node.left_node) >= self.visit(ast_node.right_node)
+            case Token.K_AND:
+                return self.visit(ast_node.left_node) and self.visit(
+                    ast_node.right_node
+                )
+            case Token.K_OR:
+                return self.visit(ast_node.left_node) or self.visit(ast_node.right_node)
 
     def visitEmptyStatementNode(self, ast_node):
         pass
@@ -58,7 +84,7 @@ class Interpreter(ASTNodeVisitor):
     def visitVarTypeNode(self, ast_node):
         pass
 
-    def visitVarDeclarationStatementNode(self, ast_node):
+    def visitVarDeclStatementNode(self, ast_node):
         for variable in ast_node.variables:
             if isinstance(variable, AssignStatementNode):
                 self.visit(variable)

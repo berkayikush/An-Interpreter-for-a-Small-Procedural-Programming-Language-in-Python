@@ -5,7 +5,11 @@ class Lexer:
     def __init__(self, text):
         self.__text = text
         self.__char_pos = 0
-        self.__current_char = self.__text[self.__char_pos]
+
+        if len(text) == 0:
+            self.__current_char = None
+        else:
+            self.__current_char = self.__text[self.__char_pos]
 
     def get_next_token(self):
         while self.__current_char is not None:
@@ -23,6 +27,9 @@ class Lexer:
                 if identifier in Token.KEYWORDS:
                     return Token(Token.KEYWORDS[identifier], identifier)
 
+                if identifier in ["true", "false"]:
+                    return Token(Token.BOOL, identifier)
+
                 return Token(Token.IDENTIFIER, identifier)
 
             if self.__current_char.isdigit():
@@ -33,10 +40,9 @@ class Lexer:
 
                 return Token(Token.FLOAT, num)
 
-            if self.__current_char == "=" and self.__check_next_char() == "=":
-                self.__advance()
-                self.__advance()
-                return Token(Token.EQUALS, "==")
+            if self.__is_comparsion_operator():
+                token_type, operator = self.__convert_to_comparsion_operator()
+                return Token(token_type, operator)
 
             if self.__is_assignment_operator():
                 token_type, operator = self.__convert_to_assignment_operator()
@@ -142,6 +148,14 @@ class Lexer:
     def __is_arithmetic_operator(self):
         return self.__current_char in ["+", "-", "*", "/", "%"]
 
+    def __is_comparsion_operator(self):
+        return (
+            (self.__current_char == "=" and self.__check_next_char() == "=")
+            or (self.__current_char == "!")
+            or (self.__current_char == "<")
+            or (self.__current_char == ">")
+        )
+
     def __is_wrapper(self):
         return self.__current_char in ["{", "}"]
 
@@ -194,6 +208,40 @@ class Lexer:
             token_type = Token.FLOAT_DIVISION_ASSIGN
         else:
             token_type = Token.MODULO_ASSIGN
+
+        return token_type, operator
+
+    def __convert_to_comparsion_operator(self):
+        operator = self.__current_char
+        self.__advance()
+
+        match operator:
+            case "=":
+                operator += self.__current_char
+                self.__advance()
+                token_type = Token.EQUALS
+
+            case "!":
+                operator += self.__current_char
+                self.__advance()
+                token_type = Token.NOT_EQUALS
+
+            case "<":
+                if self.__current_char == "=":
+                    operator += self.__current_char
+                    self.__advance()
+                    token_type = Token.LESS_THAN_OR_EQUALS
+                else:
+                    token_type = Token.LESS_THAN
+
+            case _:
+                if self.__current_char == "=":
+                    operator += self.__current_char
+                    self.__advance()
+
+                    token_type = Token.GREATER_THAN_OR_EQUALS
+                else:
+                    token_type = Token.GREATER_THAN
 
         return token_type, operator
 

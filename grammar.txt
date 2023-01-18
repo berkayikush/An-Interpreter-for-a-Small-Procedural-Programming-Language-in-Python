@@ -20,16 +20,27 @@ statement_list: statement | statement SEMI_COLON statement_list
 statement: variable_declaration_statement | assignment_statement | empty_statement
 
 variable_declaration_statement: K_VAR LEFT_PARENTHESIS variable_type RIGHT_PARENTHESIS 
-                                variable_name (ASSIGN expr)? (COMMA variable_name (ASSIGN expr)?)*
-variable_type: K_INT | K_FLOAT
+                                variable_name (ASSIGN logical_expr)? (COMMA variable_name (ASSIGN logical_expr)?)*
+variable_type: K_INT | K_FLOAT | K_BOOL
 
 assignment_statement: variable_name (ASSIGN | PLUS_ASSIGN | MINUS_ASSIGN | MULTIPLICATION_ASSIGN | FLOAT_DIVISION_ASSIGN 
                                             | INT_DIVISION_ASSIGN
-                                            | MODULO_ASSIGN) expr
+                                            | MODULO_ASSIGN) logical_expr
 empty_statement: 
 
-expr: term((PLUS | MINUS) term)*
+logical_expr: comparison_expr ((K_AND | K_OR) comparison_expr)*
+comparison_expr: K_NOT comparison_expr | 
+                 arithmetic_expr ((EQUALS | NOT_EQUALS | LESS_THAN 
+                                          | LESS_THAN_OR_EQUALS 
+                                          | GREATER_THAN 
+                                          | GREATER_THAN_OR_EQUALS) arithmetic_expr)*
+
+arithmetic_expr: term((PLUS | MINUS) term)*
 term: factor((MULTIPLICATION | INT_DIVISION | FLOAT_DIVISION | MODULO) factor)*
-factor: (INT | FLOAT) | LEFT_PARENTHESIS expr RIGHT_PARENTHESIS | (PLUS | MINUS) factor | variable_name
+
+factor: (INT | FLOAT | BOOL) 
+        | LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS 
+        | (PLUS | MINUS) factor 
+        | variable_name
 
 variable_name: IDENTIFIER

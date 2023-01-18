@@ -67,8 +67,6 @@ class Token:
     K_INT = "K_INT"
     K_FLOAT = "K_FLOAT"
     K_BOOL = "K_BOOL"
-    K_TRUE = "K_TRUE"
-    K_FALSE = "K_FALSE"
     K_AND = "K_AND"
     K_OR = "K_OR"
     K_NOT = "K_NOT"
@@ -78,8 +76,6 @@ class Token:
         "int": K_INT,
         "float": K_FLOAT,
         "bool": K_BOOL,
-        "true": K_TRUE,
-        "false": K_FALSE,
         "and": K_AND,
         "or": K_OR,
         "not": K_NOT,

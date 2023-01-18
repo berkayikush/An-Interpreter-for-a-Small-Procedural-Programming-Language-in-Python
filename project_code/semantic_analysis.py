@@ -16,6 +16,9 @@ class SemanticAnalyzer(ASTNodeVisitor):
     def visitNumberNode(self, ast_node):
         pass
 
+    def visitBoolNode(self, ast_node):
+        pass
+
     def visitUnaryOpNode(self, ast_node):
         self.visit(ast_node.child_node)
 
@@ -30,13 +33,14 @@ class SemanticAnalyzer(ASTNodeVisitor):
         self.visit(ast_node.right_node)
         self.visit(ast_node.left_node)
 
-    def visitVarDeclarationStatementNode(self, ast_node):
+    def visitVarDeclStatementNode(self, ast_node):
         type_symbol = self.__scope_symbol_table.get_symbol(ast_node.var_type_node.value)
 
         for variable in ast_node.variables:
             if isinstance(variable, VarNode):
                 variable_name = variable.value
             else:
+                self.visit(variable.right_node)
                 variable_name = variable.left_node.value
 
             variable_symbol = VariableSymbol(variable_name, type_symbol)
