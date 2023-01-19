@@ -31,9 +31,6 @@ class ScopeSymbolTable:
     def add_symbol(self, symbol):
         self.__symbols[symbol.name] = symbol
 
-    def __check_symbol(self, name):
-        return name in self.__symbols
-
     def get_symbol(self, name, check_outside_scope=True):
         if self.__check_symbol(name):
             return self.__symbols[name]
@@ -44,17 +41,8 @@ class ScopeSymbolTable:
         if self.__outside_scope is not None:
             return self.__outside_scope.get_symbol(name)
 
-    def __str__(self):
-        return (
-            f"Scope: {self.__scope_name}\n"
-            f"Level: {self.__scope_level}\n"
-            f"Outside scope: {self.__outside_scope.scope_name if self.__outside_scope else None}\n"
-            "Content:\n"
-            "{" + "\n".join(f"\t{k}: {v}," for k, v in self.__symbols.items()) + "\n}"
-        )
-
-    def __repr__(self):
-        return self.__str__()
+    def __check_symbol(self, name):
+        return name in self.__symbols
 
 
 class Symbol:
@@ -75,12 +63,6 @@ class BuiltInTypeSymbol(Symbol):
     def __init__(self, name):
         super().__init__(name)
 
-    def __str__(self):
-        return f"BuiltInType({self._name})"
-
-    def __repr__(self):
-        return self.__str__()
-
 
 class VariableSymbol(Symbol):
     """
@@ -91,19 +73,7 @@ class VariableSymbol(Symbol):
     def __init__(self, name, type_):
         super().__init__(name, type_)
 
-    def __str__(self):
-        return f"Variable({self._name}:{self._type_})"
-
-    def __repr__(self):
-        return self.__str__()
-
 
 class IfElseIfElseSymbol(Symbol):
     def __init__(self, name, type_):
         super().__init__(name=f"{name}_{id(self)}", type_=type_)
-
-    def __str__(self):
-        return f"IfElseIfElse({self._name}:{self._type_})"
-
-    def __repr__(self):
-        return self.__str__()

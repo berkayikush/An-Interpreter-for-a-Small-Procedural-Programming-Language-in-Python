@@ -13,14 +13,13 @@ from .abstract_syntax_tree import (
     StatementListNode,
     ProgramNode,
 )
+from .error import ParserError
 
 
 class Parser:
     def __init__(self, lexer):
         self.__lexer = lexer
         self.__current_token = self.__lexer.get_next_token()
-
-        self.__num_of_if_statements = 0
 
     def parse(self):
         ast_node = self.__program()
@@ -42,7 +41,10 @@ class Parser:
         self.__error()
 
     def __error(self):
-        raise Exception("Invalid syntax")
+        raise ParserError(
+            error_message=f"{ParserError.UNEXPECTED_TOKEN}: {self.__current_token}",
+            value=self.__current_token,
+        )
 
     def __variable_name(self):
         """
@@ -199,9 +201,7 @@ class Parser:
             case Token.MODULO_ASSIGN:
                 self.__eat(Token.MODULO_ASSIGN)
                 right_node = BinaryOpNode(
-                    left_node,
-                    Token(Token.MODULO, "%"),
-                    self.__logical_expr(),  # TODO: might change it to arithmetic_expr
+                    left_node, Token(Token.MODULO, "%"), self.__logical_expr()
                 )
 
             case _:

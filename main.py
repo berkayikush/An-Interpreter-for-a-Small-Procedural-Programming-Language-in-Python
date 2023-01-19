@@ -11,20 +11,7 @@ def main():
     
     if(x == true) {
         var(bool) y = true;
-        
-        if(y == true) {
-            var(bool) y = false;
-        };
-    } elseif(x == false) {
-        var(bool) y = false;
-        x = y and x;
-    } elseif(x == false) {
-        var(bool) x = false;
     } else {
-        var(bool) y = false;
-    };
-    
-    if(x == true) {
         var(bool) y = true;
     }
     """

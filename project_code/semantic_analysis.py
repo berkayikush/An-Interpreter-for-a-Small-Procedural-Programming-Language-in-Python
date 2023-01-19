@@ -7,6 +7,7 @@ from .scope_symbol_table import (
     VariableSymbol,
     IfElseIfElseSymbol,
 )
+from .error import SemanticAnalysisError
 
 
 class SemanticAnalyzer(ASTNodeVisitor):
@@ -19,7 +20,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
         variable_symbol = self.__current_scope_symbol_table.get_symbol(ast_node.value)
 
         if variable_symbol is None:
-            raise NameError(f"Identifier {ast_node.value} is not defined.")
+            self.__error(SemanticAnalysisError.IDENTIFIER_NOT_FOUND, ast_node.value)
 
     def visitNumberNode(self, ast_node):
         pass
@@ -41,22 +42,6 @@ class SemanticAnalyzer(ASTNodeVisitor):
         self.visit(ast_node.right_node)
         self.visit(ast_node.left_node)
 
-    def __add_symbols_to_current_scope(self, ast_node, symbol_names):
-        for i, (condition, _) in enumerate(ast_node.if_cases):
-            self.visit(condition)
-            name, type_ = ("if", Token.K_IF) if i == 0 else ("elseif", Token.K_ELSEIF)
-
-            if_elseif_symbol = IfElseIfElseSymbol(name, BuiltInTypeSymbol(type_))
-            symbol_names.append(if_elseif_symbol.name)
-
-            self.__current_scope_symbol_table.add_symbol(if_elseif_symbol)
-
-        if ast_node.else_case is not None:
-            else_symbol = IfElseIfElseSymbol("else", BuiltInTypeSymbol(Token.K_ELSE))
-            symbol_names.append(else_symbol.name)
-
-            self.__current_scope_symbol_table.add_symbol(else_symbol)
-
     def visitIfStatementNode(self, ast_node):
         symbol_names = []
         self.__add_symbols_to_current_scope(ast_node, symbol_names)
@@ -69,7 +54,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
             )
 
             self.visit(statement_list)
-            print(self.__current_scope_symbol_table)
+
             self.__current_scope_symbol_table = (
                 self.__current_scope_symbol_table.outside_scope
             )
@@ -82,7 +67,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
             )
 
             self.visit(ast_node.else_case)
-            print(self.__current_scope_symbol_table)
+
             self.__current_scope_symbol_table = (
                 self.__current_scope_symbol_table.outside_scope
             )
@@ -107,7 +92,9 @@ class SemanticAnalyzer(ASTNodeVisitor):
                 )
                 is not None
             ):
-                raise NameError(f"Identifier {variable_name} is already defined.")
+                self.__error(
+                    SemanticAnalysisError.IDENTIFIER_ALREADY_DEFINED, variable_name
+                )
 
             self.__current_scope_symbol_table.add_symbol(variable_symbol)
 
@@ -116,9 +103,27 @@ class SemanticAnalyzer(ASTNodeVisitor):
             self.visit(statement)
 
     def visitProgramNode(self, ast_node):
-        global_scope = self.__current_scope_symbol_table
         self.visit(ast_node.statement_list_node)
+
         self.__current_scope_symbol_table = (
             self.__current_scope_symbol_table.outside_scope
         )
-        print(global_scope)
+
+    def __add_symbols_to_current_scope(self, ast_node, symbol_names):
+        for i, (condition, _) in enumerate(ast_node.if_cases):
+            self.visit(condition)
+            name, type_ = ("if", Token.K_IF) if i == 0 else ("elseif", Token.K_ELSEIF)
+
+            if_elseif_symbol = IfElseIfElseSymbol(name, BuiltInTypeSymbol(type_))
+            symbol_names.append(if_elseif_symbol.name)
+
+            self.__current_scope_symbol_table.add_symbol(if_elseif_symbol)
+
+        if ast_node.else_case is not None:
+            else_symbol = IfElseIfElseSymbol("else", BuiltInTypeSymbol(Token.K_ELSE))
+            symbol_names.append(else_symbol.name)
+
+            self.__current_scope_symbol_table.add_symbol(else_symbol)
+
+    def __error(self, error_code, value):
+        raise SemanticAnalysisError(error_message=f"{error_code}: {value}", value=value)

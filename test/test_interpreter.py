@@ -139,3 +139,24 @@ class TestInterpreter(unittest.TestCase):
 
         self.assertEqual(interpreter.GLOBAL_MEMORY["x"], 5)
         self.assertEqual(interpreter.GLOBAL_MEMORY["y"], 2)
+
+    def test_interpreter_with_if(self):
+        text = """
+        var(int) x = 3, y = 2;
+        
+        if(x == 3) {
+            var(int) x = 5;
+        };
+        """
+        lexer = Lexer(text)
+        parser = Parser(lexer)
+        tree = parser.parse()
+
+        semantic_analyzer = SemanticAnalyzer()
+        semantic_analyzer.visit(tree)
+
+        interpreter = Interpreter(tree)
+        interpreter.interpret()
+
+        self.assertEqual(interpreter.GLOBAL_MEMORY["x"], 3)
+        self.assertEqual(interpreter.GLOBAL_MEMORY["y"], 2)

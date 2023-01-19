@@ -92,9 +92,12 @@ class Token:
     ###########
     MULTI_LINE_COMMENT = "MULTI_LINE_COMMENT"  # "/* */"
 
-    def __init__(self, _type, value=None):
+    def __init__(self, _type, value=None, line=None, col=None):
         self.__type = _type
         self.__value = value
+
+        self.__line = line
+        self.__col = col
 
     @property
     def type_(self):
@@ -105,7 +108,7 @@ class Token:
         return self.__value
 
     def __str__(self):
-        return f"Token({self.__type}, {self.__value})"
+        return f"Token({self.__type}, {self.__value}, line: {self.__line}, column: {self.__col})"
 
     def __repr__(self):
         return self.__str__()

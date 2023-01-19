@@ -1,4 +1,5 @@
 from .tokens import Token
+from .error import LexerError
 
 
 class Lexer:
@@ -10,6 +11,9 @@ class Lexer:
             self.__current_char = None
         else:
             self.__current_char = self.__text[self.__char_pos]
+
+        self.__line = 1
+        self.__col = 1
 
     def get_next_token(self):
         while self.__current_char is not None:
@@ -25,54 +29,60 @@ class Lexer:
                 identifier = self.__convert_to_id()
 
                 if identifier in Token.KEYWORDS:
-                    return Token(Token.KEYWORDS[identifier], identifier)
+                    return Token(
+                        Token.KEYWORDS[identifier], identifier, self.__line, self.__col
+                    )
 
                 if identifier in ["true", "false"]:
-                    return Token(Token.BOOL, identifier)
+                    return Token(Token.BOOL, identifier, self.__line, self.__col)
 
-                return Token(Token.IDENTIFIER, identifier)
+                return Token(Token.IDENTIFIER, identifier, self.__line, self.__col)
 
             if self.__current_char.isdigit():
                 num = self.__convert_to_num()
 
                 if isinstance(num, int):
-                    return Token(Token.INT, num)
+                    return Token(Token.INT, num, self.__line, self.__col)
 
-                return Token(Token.FLOAT, num)
+                return Token(Token.FLOAT, num, self.__line, self.__col)
 
             if self.__is_comparsion_operator():
                 token_type, operator = self.__convert_to_comparsion_operator()
-                return Token(token_type, operator)
+                return Token(token_type, operator, self.__line, self.__col)
 
             if self.__is_assignment_operator():
                 token_type, operator = self.__convert_to_assignment_operator()
-                return Token(token_type, operator)
+                return Token(token_type, operator, self.__line, self.__col)
 
             if self.__is_arithmetic_operator():
                 token_type, operator = self.__convert_to_arithmetic_operator()
-                return Token(token_type, operator)
+                return Token(token_type, operator, self.__line, self.__col)
 
             if self.__current_char == ";":
                 self.__advance()
-                return Token(Token.SEMI_COLON, ";")
+                return Token(Token.SEMI_COLON, ";", self.__line, self.__col)
 
             if self.__current_char == ",":
                 self.__advance()
-                return Token(Token.COMMA, ",")
+                return Token(Token.COMMA, ",", self.__line, self.__col)
 
             if self.__is_wrapper():
                 token_type, wrapper = self.__convert_to_wrapper()
-                return Token(token_type, wrapper)
+                return Token(token_type, wrapper, self.__line, self.__col)
 
             if self.__is_parenthesis():
                 token_type, parenthesis = self.__convert_to_parenthesis()
-                return Token(token_type, parenthesis)
+                return Token(token_type, parenthesis, self.__line, self.__col)
 
             self.__error()
 
         return Token(Token.EOF, None)
 
     def __advance(self):
+        if self.__current_char == "\n":
+            self.__line += 1
+            self.__col = 0
+
         self.__char_pos += 1
 
         if self.__char_pos == len(self.__text):  # End of input
@@ -80,6 +90,7 @@ class Lexer:
             return
 
         self.__current_char = self.__text[self.__char_pos]
+        self.__col += 1
 
     def __check_next_char(self, offset=1):
         """
@@ -268,4 +279,6 @@ class Lexer:
         return token_type, parenthesis
 
     def __error(self):
-        raise Exception("Invalid character")
+        raise LexerError(
+            error_message=f"Error occured for {self.__current_char} on line {self.__line}, column {self.__col}"
+        )
