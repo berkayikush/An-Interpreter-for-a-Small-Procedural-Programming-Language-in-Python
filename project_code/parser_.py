@@ -7,6 +7,7 @@ from .abstract_syntax_tree import (
     BinaryOpNode,
     EmptyStatementNode,
     AssignStatementNode,
+    IfStatementNode,
     VarTypeNode,
     VarDeclStatementNode,
     StatementListNode,
@@ -18,6 +19,8 @@ class Parser:
     def __init__(self, lexer):
         self.__lexer = lexer
         self.__current_token = self.__lexer.get_next_token()
+
+        self.__num_of_if_statements = 0
 
     def parse(self):
         ast_node = self.__program()
@@ -207,6 +210,48 @@ class Parser:
 
         return AssignStatementNode(left_node, op_token, right_node)
 
+    def __if_statement(self):
+        """
+        if_statement: K_IF LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET
+                      (K_ELSEIF LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET)*
+                      (K_ELSE LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET)?
+        """
+        if_cases = []
+        else_case = None
+
+        self.__eat(Token.K_IF)
+        self.__eat(Token.LEFT_PARENTHESIS)
+
+        condition_node = self.__logical_expr()
+        self.__eat(Token.RIGHT_PARENTHESIS)
+
+        self.__eat(Token.LEFT_CURLY_BRACKET)
+        if_cases.append((condition_node, self.__statement_list()))
+        self.__eat(Token.RIGHT_CURLY_BRACKET)
+
+        while self.__current_token.type_ == Token.K_ELSEIF:
+            self.__eat(Token.K_ELSEIF)
+            self.__eat(Token.LEFT_PARENTHESIS)
+
+            condition_node = self.__logical_expr()
+            self.__eat(Token.RIGHT_PARENTHESIS)
+
+            self.__eat(Token.LEFT_CURLY_BRACKET)
+            if_cases.append((condition_node, self.__statement_list()))
+            self.__eat(Token.RIGHT_CURLY_BRACKET)
+
+        if self.__current_token.type_ == Token.K_ELSE:
+            self.__eat(Token.K_ELSE)
+
+            self.__eat(Token.LEFT_CURLY_BRACKET)
+            else_case = self.__statement_list()
+            self.__eat(Token.RIGHT_CURLY_BRACKET)
+
+        return IfStatementNode(
+            if_cases,
+            else_case,
+        )
+
     def __variable_type(self):
         """
         variable_type: K_INT | K_FLOAT | K_BOOL
@@ -269,10 +314,13 @@ class Parser:
 
     def __statement(self):
         """
-        statement: statement: variable_declaration_statement | assignment_statement | empty_statement
+        statement: variable_declaration_statement | if_statement | assignment_statement | empty_statement
         """
         if self.__current_token.type_ == Token.K_VAR:
             return self.__variable_declaration_statement()
+
+        if self.__current_token.type_ == Token.K_IF:
+            return self.__if_statement()
 
         if self.__current_token.type_ == Token.IDENTIFIER:
             return self.__assign_statement()

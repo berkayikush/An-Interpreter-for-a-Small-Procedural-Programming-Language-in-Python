@@ -85,6 +85,20 @@ class AssignStatementNode(AST):
         return self.__right_node
 
 
+class IfStatementNode(AST):
+    def __init__(self, if_cases, else_case):
+        self.__if_cases = if_cases
+        self.__else_case = else_case
+
+    @property
+    def if_cases(self):
+        return self.__if_cases
+
+    @property
+    def else_case(self):
+        return self.__else_case
+
+
 class VarTypeNode(AST):
     def __init__(self, type_token):
         self.__value = type_token.value

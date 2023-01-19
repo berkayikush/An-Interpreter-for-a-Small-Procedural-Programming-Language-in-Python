@@ -81,6 +81,16 @@ class Interpreter(ASTNodeVisitor):
             ast_node.right_node
         )
 
+    def visitIfStatementNode(self, ast_node):
+        for condition, statement in ast_node.if_cases:
+            condition_result = self.visit(condition)
+
+            if condition_result:
+                return self.visit(statement)
+
+        if ast_node.else_case is not None:
+            return self.visit(ast_node.else_case)
+
     def visitVarTypeNode(self, ast_node):
         pass
 

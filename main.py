@@ -8,8 +8,25 @@ from project_code.interpreter import Interpreter
 def main():
     text = """
     var(bool) x = true, y = false;
-    var(bool) z = x and y;
-    var(bool) a = x or y;
+    
+    if(x == true) {
+        var(bool) y = true;
+        
+        if(y == true) {
+            var(bool) y = false;
+        };
+    } elseif(x == false) {
+        var(bool) y = false;
+        x = y and x;
+    } elseif(x == false) {
+        var(bool) x = false;
+    } else {
+        var(bool) y = false;
+    };
+    
+    if(x == true) {
+        var(bool) y = true;
+    }
     """
 
     lexer = Lexer(text)
@@ -18,9 +35,6 @@ def main():
 
     semantic_analyzer = SemanticAnalyzer()
     semantic_analyzer.visit(tree)
-
-    hello = Interpreter(tree)
-    hello.interpret()
 
 
 if __name__ == "__main__":

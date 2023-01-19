@@ -70,6 +70,9 @@ class Token:
     K_AND = "K_AND"
     K_OR = "K_OR"
     K_NOT = "K_NOT"
+    K_IF = "K_IF"
+    K_ELSEIF = "K_ELSEIF"
+    K_ELSE = "K_ELSE"
 
     KEYWORDS = {
         "var": K_VAR,
@@ -79,6 +82,9 @@ class Token:
         "and": K_AND,
         "or": K_OR,
         "not": K_NOT,
+        "if": K_IF,
+        "elseif": K_ELSEIF,
+        "else": K_ELSE,
     }
 
     ###########

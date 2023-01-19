@@ -2,15 +2,31 @@ from .tokens import Token
 
 
 class ScopeSymbolTable:
-    def __init__(self, scope_name, scope_level):
+    def __init__(self, scope_name, scope_level, outside_scope=None):
         self.__scope_name = scope_name
         self.__scope_level = scope_level
+        self.__outside_scope = outside_scope
 
         self.__symbols = {
             "int": BuiltInTypeSymbol(Token.K_INT),
             "float": BuiltInTypeSymbol(Token.K_FLOAT),
             "bool": BuiltInTypeSymbol(Token.K_BOOL),
+            "if": BuiltInTypeSymbol(Token.K_IF),
+            "elseif": BuiltInTypeSymbol(Token.K_ELSEIF),
+            "else": BuiltInTypeSymbol(Token.K_ELSE),
         }
+
+    @property
+    def scope_name(self):
+        return self.__scope_name
+
+    @property
+    def scope_level(self):
+        return self.__scope_level
+
+    @property
+    def outside_scope(self):
+        return self.__outside_scope
 
     def add_symbol(self, symbol):
         self.__symbols[symbol.name] = symbol
@@ -18,16 +34,21 @@ class ScopeSymbolTable:
     def __check_symbol(self, name):
         return name in self.__symbols
 
-    def get_symbol(self, name):
+    def get_symbol(self, name, check_outside_scope=True):
         if self.__check_symbol(name):
             return self.__symbols[name]
 
-        return None
+        if not check_outside_scope:
+            return None
+
+        if self.__outside_scope is not None:
+            return self.__outside_scope.get_symbol(name)
 
     def __str__(self):
         return (
             f"Scope: {self.__scope_name}\n"
             f"Level: {self.__scope_level}\n"
+            f"Outside scope: {self.__outside_scope.scope_name if self.__outside_scope else None}\n"
             "Content:\n"
             "{" + "\n".join(f"\t{k}: {v}," for k, v in self.__symbols.items()) + "\n}"
         )
@@ -72,6 +93,17 @@ class VariableSymbol(Symbol):
 
     def __str__(self):
         return f"Variable({self._name}:{self._type_})"
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class IfElseIfElseSymbol(Symbol):
+    def __init__(self, name, type_):
+        super().__init__(name=f"{name}_{id(self)}", type_=type_)
+
+    def __str__(self):
+        return f"IfElseIfElse({self._name}:{self._type_})"
 
     def __repr__(self):
         return self.__str__()
