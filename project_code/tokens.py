@@ -73,6 +73,7 @@ class Token:
     K_IF = "K_IF"
     K_ELSEIF = "K_ELSEIF"
     K_ELSE = "K_ELSE"
+    K_WHILE = "K_WHILE"
 
     KEYWORDS = {
         "var": K_VAR,
@@ -85,6 +86,7 @@ class Token:
         "if": K_IF,
         "elseif": K_ELSEIF,
         "else": K_ELSE,
+        "while": K_WHILE,
     }
 
     ###########

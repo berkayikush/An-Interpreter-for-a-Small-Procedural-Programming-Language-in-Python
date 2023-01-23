@@ -6,6 +6,7 @@ from .scope_symbol_table import (
     BuiltInTypeSymbol,
     VariableSymbol,
     ConditionalSymbol,
+    WhileSymbol,
 )
 from .error import SemanticAnalysisError
 
@@ -46,14 +47,14 @@ class SemanticAnalyzer(ASTNodeVisitor):
         symbol_names = []
         self.__add_conditional_symbols_to_current_scope(ast_node, symbol_names)
 
-        for i, (_, statement_list) in enumerate(ast_node.if_cases):
+        for i, (_, statement_list_node) in enumerate(ast_node.if_cases):
             self.__current_scope_symbol_table = ScopeSymbolTable(
                 scope_name=symbol_names[i],
                 scope_level=self.__current_scope_symbol_table.scope_level + 1,
                 outer_scope=self.__current_scope_symbol_table,
             )
 
-            self.visit(statement_list)
+            self.visit(statement_list_node)
 
             self.__current_scope_symbol_table = (
                 self.__current_scope_symbol_table.outer_scope
@@ -88,6 +89,23 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
             self.__current_scope_symbol_table.add_symbol(else_symbol)
 
+    def visitWhileStatementNode(self, ast_node):
+        self.visit(ast_node.condition)
+
+        while_symbol = WhileSymbol("while", BuiltInTypeSymbol(Token.K_WHILE))
+        self.__current_scope_symbol_table.add_symbol(while_symbol)
+
+        self.__current_scope_symbol_table = ScopeSymbolTable(
+            scope_name=while_symbol.name,
+            scope_level=self.__current_scope_symbol_table.scope_level + 1,
+            outer_scope=self.__current_scope_symbol_table,
+        )
+
+        self.visit(ast_node.statement_list_node)
+        self.__current_scope_symbol_table = (
+            self.__current_scope_symbol_table.outer_scope
+        )
+
     def visitVarDeclStatementNode(self, ast_node, check_outer_scope=False):
         type_symbol = self.__current_scope_symbol_table.get_symbol(
             ast_node.var_type_node.value
@@ -107,6 +125,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
                 or self.__current_scope_symbol_table.scope_name.startswith("if")
                 or self.__current_scope_symbol_table.scope_name.startswith("elseif")
                 or self.__current_scope_symbol_table.scope_name.startswith("else")
+                or self.__current_scope_symbol_table.scope_name.startswith("while")
             )
 
             if (

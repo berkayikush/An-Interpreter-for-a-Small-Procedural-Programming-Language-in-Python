@@ -29,6 +29,7 @@ class StackFrame:
     ###############
     GLOBAL = "GLOBAL"
     CONDITIONAL_STATEMENT = "CONDITIONAL_STATEMENT"
+    WHILE_STATEMENT = "WHILE_STATEMENT"
 
     def __init__(self, name, type_, scope_level, outer_scope=None):
         self.__name = name

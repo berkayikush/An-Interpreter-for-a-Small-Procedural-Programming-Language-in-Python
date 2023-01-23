@@ -8,6 +8,7 @@ from .abstract_syntax_tree import (
     EmptyStatementNode,
     AssignStatementNode,
     ConditionalStatementNode,
+    WhileStatementNode,
     VarTypeNode,
     VarDeclStatementNode,
     StatementListNode,
@@ -252,6 +253,23 @@ class Parser:
             else_case,
         )
 
+    def __while_statement(self):
+        """
+        while_statement: K_WHILE LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS
+                         LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET
+        """
+        self.__eat(Token.K_WHILE)
+        self.__eat(Token.LEFT_PARENTHESIS)
+
+        condition_node = self.__logical_expr()
+        self.__eat(Token.RIGHT_PARENTHESIS)
+
+        self.__eat(Token.LEFT_CURLY_BRACKET)
+        statement_list = self.__statement_list()
+        self.__eat(Token.RIGHT_CURLY_BRACKET)
+
+        return WhileStatementNode(condition_node, statement_list)
+
     def __variable_type(self):
         """
         variable_type: K_INT | K_FLOAT | K_BOOL
@@ -314,10 +332,14 @@ class Parser:
 
     def __statement(self):
         """
-        statement: variable_declaration_statement | conditional_statement | assignment_statement | empty_statement
+        statement: variable_declaration_statement | while_loop_statement | conditional_statement |
+                   assignment_statement | empty_statement
         """
         if self.__current_token.type_ == Token.K_VAR:
             return self.__variable_declaration_statement()
+
+        if self.__current_token.type_ == Token.K_WHILE:
+            return self.__while_statement()
 
         if self.__current_token.type_ == Token.K_IF:
             return self.__conditional_statement()

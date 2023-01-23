@@ -12,17 +12,13 @@ def main():
     y = 7;
     x = ((y + 3) * 3) + 3;
     
-    if (x == 33) {
-        x = 1;
-        var(int) z = 2;
-        
-        if (z == 2) {
-            z = 3;
-        }
+    while (y > 0) {
+        while (x > 0) {
+            x -= 10;
+        };
+        x += 1;
+        y -= 1;
     };
-    
-    y = x;
-    y = z + 1;
     """
 
     lexer = Lexer(text)

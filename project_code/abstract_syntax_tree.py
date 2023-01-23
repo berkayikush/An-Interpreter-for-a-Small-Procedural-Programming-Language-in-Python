@@ -99,6 +99,20 @@ class ConditionalStatementNode(AST):
         return self.__else_case
 
 
+class WhileStatementNode(AST):
+    def __init__(self, condition, statement_list_node):
+        self.__condition = condition
+        self.__statement_list_node = statement_list_node
+
+    @property
+    def condition(self):
+        return self.__condition
+
+    @property
+    def statement_list_node(self):
+        return self.__statement_list_node
+
+
 class VarTypeNode(AST):
     def __init__(self, type_token):
         self.__value = type_token.value
