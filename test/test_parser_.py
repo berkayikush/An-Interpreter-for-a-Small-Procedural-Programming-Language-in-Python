@@ -11,7 +11,7 @@ from project_code.abstract_syntax_tree import (
     BinaryOpNode,
     EmptyStatementNode,
     AssignStatementNode,
-    IfStatementNode,
+    ConditionalStatementNode,
     VarTypeNode,
     VarDeclStatementNode,
     StatementListNode,

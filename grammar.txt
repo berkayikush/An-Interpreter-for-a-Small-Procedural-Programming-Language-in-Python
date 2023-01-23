@@ -7,7 +7,7 @@
 ------------------------
 Compact is a small programming language created by Berkay. 
 It supports a range of fundamental programming concepts, including variable declaration, 
-order of operations, conditional statements, loops, and functions. 
+order of operations, conditional statements, loops, and functions.
 
 The syntax of Compact is designed to be easy to read and understand.
 
@@ -17,13 +17,13 @@ The syntax of Compact is designed to be easy to read and understand.
 program: statement_list
 
 statement_list: statement | statement SEMI_COLON statement_list
-statement: variable_declaration_statement | if_statement | assignment_statement | empty_statement
+statement: variable_declaration_statement | conditional_statement | assignment_statement | empty_statement
 
 variable_declaration_statement: K_VAR LEFT_PARENTHESIS variable_type RIGHT_PARENTHESIS 
                                 variable_name (ASSIGN logical_expr)? (COMMA variable_name (ASSIGN logical_expr)?)*
 variable_type: K_INT | K_FLOAT | K_BOOL
 
-if_statement: K_IF LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET 
+conditional_statement: K_IF LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET 
               (K_ELIF LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET)*
               (K_ELSE LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET)?
               

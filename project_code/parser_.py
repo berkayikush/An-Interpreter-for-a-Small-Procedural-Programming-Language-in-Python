@@ -7,7 +7,7 @@ from .abstract_syntax_tree import (
     BinaryOpNode,
     EmptyStatementNode,
     AssignStatementNode,
-    IfStatementNode,
+    ConditionalStatementNode,
     VarTypeNode,
     VarDeclStatementNode,
     StatementListNode,
@@ -210,11 +210,11 @@ class Parser:
 
         return AssignStatementNode(left_node, op_token, right_node)
 
-    def __if_statement(self):
+    def __conditional_statement(self):
         """
-        if_statement: K_IF LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET
-                      (K_ELSEIF LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET)*
-                      (K_ELSE LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET)?
+        conditional_statement: K_IF LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET
+                               (K_ELSEIF LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET)*
+                               (K_ELSE LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET)?
         """
         if_cases = []
         else_case = None
@@ -247,7 +247,7 @@ class Parser:
             else_case = self.__statement_list()
             self.__eat(Token.RIGHT_CURLY_BRACKET)
 
-        return IfStatementNode(
+        return ConditionalStatementNode(
             if_cases,
             else_case,
         )
@@ -314,13 +314,13 @@ class Parser:
 
     def __statement(self):
         """
-        statement: variable_declaration_statement | if_statement | assignment_statement | empty_statement
+        statement: variable_declaration_statement | conditional_statement | assignment_statement | empty_statement
         """
         if self.__current_token.type_ == Token.K_VAR:
             return self.__variable_declaration_statement()
 
         if self.__current_token.type_ == Token.K_IF:
-            return self.__if_statement()
+            return self.__conditional_statement()
 
         if self.__current_token.type_ == Token.IDENTIFIER:
             return self.__assign_statement()

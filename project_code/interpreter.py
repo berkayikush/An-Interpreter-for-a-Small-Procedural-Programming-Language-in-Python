@@ -1,10 +1,11 @@
 from .abstract_syntax_tree import AssignStatementNode
 from .tokens import Token
 from .visit_ast_node import ASTNodeVisitor
+from .program_stack import ProgramStack, StackFrame
 
 
 class Interpreter(ASTNodeVisitor):
-    GLOBAL_MEMORY = {}
+    PROGRAM_STACK = ProgramStack()
 
     def __init__(self, ast):
         self.__ast = ast
@@ -16,7 +17,8 @@ class Interpreter(ASTNodeVisitor):
         return self.visit(self.__ast)
 
     def visitVarNode(self, ast_node):
-        return Interpreter.GLOBAL_MEMORY.get(ast_node.value)
+        curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
+        return curr_stack_frame.get(ast_node.value)
 
     def visitNumberNode(self, ast_node):
         return ast_node.value
@@ -73,35 +75,74 @@ class Interpreter(ASTNodeVisitor):
         pass
 
     def visitAssignStatementNode(self, ast_node):
-        """
-        Create a dictionary in the GLOBAL_SCOPE of the parser and assign the value of the right node to the left node.
-        So that we can keep track of the variables and their values.
-        """
-        Interpreter.GLOBAL_MEMORY[ast_node.left_node.value] = self.visit(
-            ast_node.right_node
-        )
+        curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
+        curr_stack_frame.set(ast_node.left_node.value, self.visit(ast_node.right_node))
 
-    def visitIfStatementNode(self, ast_node):
-        for condition, statement in ast_node.if_cases:
+    def visitConditionalStatementNode(self, ast_node):
+        for i, (condition, statement) in enumerate(ast_node.if_cases):
             condition_result = self.visit(condition)
 
             if condition_result:
-                return self.visit(statement)
+                stack_frame_name = "if statement" if i == 0 else "elseif statement"
+
+                # Create a new stack frame for the if statements here.
+                Interpreter.PROGRAM_STACK.push(
+                    StackFrame(
+                        stack_frame_name,
+                        StackFrame.CONDITIONAL_STATEMENT,
+                        scope_level=Interpreter.PROGRAM_STACK.peek().scope_level + 1,
+                        outer_scope=Interpreter.PROGRAM_STACK.peek(),
+                    )
+                )
+
+                print("Entering", stack_frame_name, "scope")
+                print(Interpreter.PROGRAM_STACK)
+                self.visit(statement)
+                print("Exiting", stack_frame_name, "scope")
+                print(Interpreter.PROGRAM_STACK)
+                Interpreter.PROGRAM_STACK.pop()
+                return
 
         if ast_node.else_case is not None:
-            return self.visit(ast_node.else_case)
+            # Create a new stack frame for the else statement here.
+            Interpreter.PROGRAM_STACK.push(
+                StackFrame(
+                    "else statement",
+                    StackFrame.CONDITIONAL_STATEMENT,
+                    scope_level=Interpreter.PROGRAM_STACK.peek().scope_level + 1,
+                    outer_scope=Interpreter.PROGRAM_STACK.peek(),
+                )
+            )
+
+            print("Entering", "else statement", "scope")
+            print(Interpreter.PROGRAM_STACK)
+            self.visit(ast_node.else_case)
+            print("Exiting", "else statement", "scope")
+            print(Interpreter.PROGRAM_STACK)
+            Interpreter.PROGRAM_STACK.pop()
 
     def visitVarTypeNode(self, ast_node):
         pass
 
     def visitVarDeclStatementNode(self, ast_node):
+        curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
+
         for variable in ast_node.variables:
             if isinstance(variable, AssignStatementNode):
-                self.visit(variable)
+                curr_stack_frame[variable.left_node.value] = self.visit(
+                    ast_node.right_node
+                )
+            else:
+                curr_stack_frame[variable.value] = None
 
     def visitStatementListNode(self, ast_node):
         for statement in ast_node.statements:
             self.visit(statement)
 
     def visitProgramNode(self, ast_node):
+        Interpreter.PROGRAM_STACK.push(
+            StackFrame("global", StackFrame.GLOBAL, scope_level=1)
+        )
         self.visit(ast_node.statement_list_node)
+        print(Interpreter.PROGRAM_STACK)
+        Interpreter.PROGRAM_STACK.pop()

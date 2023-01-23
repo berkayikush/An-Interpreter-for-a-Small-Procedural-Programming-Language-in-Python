@@ -5,7 +5,7 @@ from .scope_symbol_table import (
     ScopeSymbolTable,
     BuiltInTypeSymbol,
     VariableSymbol,
-    IfElseIfElseSymbol,
+    ConditionalSymbol,
 )
 from .error import SemanticAnalysisError
 
@@ -13,7 +13,7 @@ from .error import SemanticAnalysisError
 class SemanticAnalyzer(ASTNodeVisitor):
     def __init__(self):
         self.__current_scope_symbol_table = ScopeSymbolTable(
-            scope_name="global", scope_level=1, outside_scope=None
+            scope_name="global", scope_level=1, outer_scope=None
         )
 
     def visitVarNode(self, ast_node):
@@ -42,35 +42,51 @@ class SemanticAnalyzer(ASTNodeVisitor):
         self.visit(ast_node.right_node)
         self.visit(ast_node.left_node)
 
-    def visitIfStatementNode(self, ast_node):
+    def visitConditionalStatementNode(self, ast_node):
         symbol_names = []
-        self.__add_symbols_to_current_scope(ast_node, symbol_names)
+        self.__add_conditional_symbols_to_current_scope(ast_node, symbol_names)
 
         for i, (_, statement_list) in enumerate(ast_node.if_cases):
             self.__current_scope_symbol_table = ScopeSymbolTable(
                 scope_name=symbol_names[i],
                 scope_level=self.__current_scope_symbol_table.scope_level + 1,
-                outside_scope=self.__current_scope_symbol_table,
+                outer_scope=self.__current_scope_symbol_table,
             )
 
             self.visit(statement_list)
 
             self.__current_scope_symbol_table = (
-                self.__current_scope_symbol_table.outside_scope
+                self.__current_scope_symbol_table.outer_scope
             )
 
         if ast_node.else_case is not None:
             self.__current_scope_symbol_table = ScopeSymbolTable(
                 scope_name=symbol_names[-1],
                 scope_level=self.__current_scope_symbol_table.scope_level + 1,
-                outside_scope=self.__current_scope_symbol_table,
+                outer_scope=self.__current_scope_symbol_table,
             )
 
             self.visit(ast_node.else_case)
 
             self.__current_scope_symbol_table = (
-                self.__current_scope_symbol_table.outside_scope
+                self.__current_scope_symbol_table.outer_scope
             )
+
+    def __add_conditional_symbols_to_current_scope(self, ast_node, symbol_names):
+        for i, (condition, _) in enumerate(ast_node.if_cases):
+            self.visit(condition)
+            name, type_ = ("if", Token.K_IF) if i == 0 else ("elseif", Token.K_ELSEIF)
+
+            if_elseif_symbol = ConditionalSymbol(name, BuiltInTypeSymbol(type_))
+            symbol_names.append(if_elseif_symbol.name)
+
+            self.__current_scope_symbol_table.add_symbol(if_elseif_symbol)
+
+        if ast_node.else_case is not None:
+            else_symbol = ConditionalSymbol("else", BuiltInTypeSymbol(Token.K_ELSE))
+            symbol_names.append(else_symbol.name)
+
+            self.__current_scope_symbol_table.add_symbol(else_symbol)
 
     def visitVarDeclStatementNode(self, ast_node):
         type_symbol = self.__current_scope_symbol_table.get_symbol(
@@ -88,7 +104,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
             if (
                 self.__current_scope_symbol_table.get_symbol(
-                    variable_name, check_outside_scope=False
+                    variable_name, check_outer_scope=False
                 )
                 is not None
             ):
@@ -106,24 +122,8 @@ class SemanticAnalyzer(ASTNodeVisitor):
         self.visit(ast_node.statement_list_node)
 
         self.__current_scope_symbol_table = (
-            self.__current_scope_symbol_table.outside_scope
+            self.__current_scope_symbol_table.outer_scope
         )
-
-    def __add_symbols_to_current_scope(self, ast_node, symbol_names):
-        for i, (condition, _) in enumerate(ast_node.if_cases):
-            self.visit(condition)
-            name, type_ = ("if", Token.K_IF) if i == 0 else ("elseif", Token.K_ELSEIF)
-
-            if_elseif_symbol = IfElseIfElseSymbol(name, BuiltInTypeSymbol(type_))
-            symbol_names.append(if_elseif_symbol.name)
-
-            self.__current_scope_symbol_table.add_symbol(if_elseif_symbol)
-
-        if ast_node.else_case is not None:
-            else_symbol = IfElseIfElseSymbol("else", BuiltInTypeSymbol(Token.K_ELSE))
-            symbol_names.append(else_symbol.name)
-
-            self.__current_scope_symbol_table.add_symbol(else_symbol)
 
     def __error(self, error_code, value):
         raise SemanticAnalysisError(error_message=f"{error_code}: {value}", value=value)

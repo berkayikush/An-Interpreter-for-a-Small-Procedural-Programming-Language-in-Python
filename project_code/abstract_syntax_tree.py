@@ -85,7 +85,7 @@ class AssignStatementNode(AST):
         return self.__right_node
 
 
-class IfStatementNode(AST):
+class ConditionalStatementNode(AST):
     def __init__(self, if_cases, else_case):
         self.__if_cases = if_cases
         self.__else_case = else_case

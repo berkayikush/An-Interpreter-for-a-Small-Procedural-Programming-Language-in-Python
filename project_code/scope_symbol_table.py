@@ -2,10 +2,10 @@ from .tokens import Token
 
 
 class ScopeSymbolTable:
-    def __init__(self, scope_name, scope_level, outside_scope=None):
+    def __init__(self, scope_name, scope_level, outer_scope=None):
         self.__scope_name = scope_name
         self.__scope_level = scope_level
-        self.__outside_scope = outside_scope
+        self.__outer_scope = outer_scope
 
         self.__symbols = {
             "int": BuiltInTypeSymbol(Token.K_INT),
@@ -25,21 +25,21 @@ class ScopeSymbolTable:
         return self.__scope_level
 
     @property
-    def outside_scope(self):
-        return self.__outside_scope
+    def outer_scope(self):
+        return self.__outer_scope
 
     def add_symbol(self, symbol):
         self.__symbols[symbol.name] = symbol
 
-    def get_symbol(self, name, check_outside_scope=True):
+    def get_symbol(self, name, check_outer_scope=True):
         if self.__check_symbol(name):
             return self.__symbols[name]
 
-        if not check_outside_scope:
+        if not check_outer_scope:
             return None
 
-        if self.__outside_scope is not None:
-            return self.__outside_scope.get_symbol(name)
+        if self.__outer_scope is not None:
+            return self.__outer_scope.get_symbol(name)
 
     def __check_symbol(self, name):
         return name in self.__symbols
@@ -74,6 +74,6 @@ class VariableSymbol(Symbol):
         super().__init__(name, type_)
 
 
-class IfElseIfElseSymbol(Symbol):
+class ConditionalSymbol(Symbol):
     def __init__(self, name, type_):
         super().__init__(name=f"{name}_{id(self)}", type_=type_)
