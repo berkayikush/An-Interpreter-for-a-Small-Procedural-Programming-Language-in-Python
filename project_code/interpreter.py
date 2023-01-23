@@ -130,7 +130,7 @@ class Interpreter(ASTNodeVisitor):
         for variable in ast_node.variables:
             if isinstance(variable, AssignStatementNode):
                 curr_stack_frame[variable.left_node.value] = self.visit(
-                    ast_node.right_node
+                    variable.right_node
                 )
             else:
                 curr_stack_frame[variable.value] = None

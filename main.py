@@ -10,14 +10,19 @@ def main():
     text = """
     var(int) x, y;
     y = 7;
-    x = (y + 3) * 3;
+    x = ((y + 3) * 3) + 3;
     
-    if (x == 30) {
-        x = 10;      
-        var(int) x;
+    if (x == 33) {
+        x = 1;
+        var(int) z = 2;
+        
+        if (z == 2) {
+            z = 3;
+        }
     };
     
     y = x;
+    y = z + 1;
     """
 
     lexer = Lexer(text)

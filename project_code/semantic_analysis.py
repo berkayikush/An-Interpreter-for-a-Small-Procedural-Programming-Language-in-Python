@@ -88,7 +88,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
             self.__current_scope_symbol_table.add_symbol(else_symbol)
 
-    def visitVarDeclStatementNode(self, ast_node):
+    def visitVarDeclStatementNode(self, ast_node, check_outer_scope=False):
         type_symbol = self.__current_scope_symbol_table.get_symbol(
             ast_node.var_type_node.value
         )
@@ -102,9 +102,16 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
             variable_symbol = VariableSymbol(variable_name, type_symbol)
 
+            check_outer_scope = (
+                self.__current_scope_symbol_table.scope_name == "global"
+                or self.__current_scope_symbol_table.scope_name.startswith("if")
+                or self.__current_scope_symbol_table.scope_name.startswith("elseif")
+                or self.__current_scope_symbol_table.scope_name.startswith("else")
+            )
+
             if (
                 self.__current_scope_symbol_table.get_symbol(
-                    variable_name, check_outer_scope=False
+                    variable_name, check_outer_scope=check_outer_scope
                 )
                 is not None
             ):
