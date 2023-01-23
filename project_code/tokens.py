@@ -74,6 +74,10 @@ class Token:
     K_ELSEIF = "K_ELSEIF"
     K_ELSE = "K_ELSE"
     K_WHILE = "K_WHILE"
+    K_FOR = "K_FOR"
+    K_FROM = "K_FROM"
+    K_TO = "K_TO"
+    K_STEP = "K_STEP"
 
     KEYWORDS = {
         "var": K_VAR,
@@ -87,6 +91,10 @@ class Token:
         "elseif": K_ELSEIF,
         "else": K_ELSE,
         "while": K_WHILE,
+        "for": K_FOR,
+        "from": K_FROM,
+        "to": K_TO,
+        "step": K_STEP,
     }
 
     ###########

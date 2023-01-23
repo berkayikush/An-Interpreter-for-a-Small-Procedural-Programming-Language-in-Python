@@ -1,3 +1,4 @@
+from os import access
 from .abstract_syntax_tree import AssignStatementNode
 from .tokens import Token
 from .visit_ast_node import ASTNodeVisitor
@@ -76,7 +77,15 @@ class Interpreter(ASTNodeVisitor):
 
     def visitAssignStatementNode(self, ast_node):
         curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
-        curr_stack_frame.set(ast_node.left_node.value, self.visit(ast_node.right_node))
+        var_type = curr_stack_frame.get(ast_node.left_node.value, access="type")
+
+        var_value = self.visit(ast_node.right_node)
+        var_value_type = str(type(var_value)).split("'")[1]
+
+        if not self.__is_same_type(var_type, var_value_type):
+            self.__error(var_type, var_value_type)
+
+        curr_stack_frame.set(ast_node.left_node.value, value=var_value)
 
     def visitConditionalStatementNode(self, ast_node):
         for i, (condition, statement) in enumerate(ast_node.if_cases):
@@ -150,14 +159,22 @@ class Interpreter(ASTNodeVisitor):
 
     def visitVarDeclStatementNode(self, ast_node):
         curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
+        var_type = ast_node.var_type_node.value
 
         for variable in ast_node.variables:
             if isinstance(variable, AssignStatementNode):
-                curr_stack_frame[variable.left_node.value] = self.visit(
-                    variable.right_node
-                )
+                var_value = self.visit(variable.right_node)
+                var_value_type = str(type(var_value)).split("'")[1]
+
+                if not self.__is_same_type(var_type, var_value_type):
+                    self.__error(var_type, var_value_type)
+
+                curr_stack_frame[variable.left_node.value] = {
+                    "type": var_type,
+                    "value": var_value,
+                }
             else:
-                curr_stack_frame[variable.value] = None
+                curr_stack_frame[variable.value] = {"type": var_type}
 
     def visitStatementListNode(self, ast_node):
         for statement in ast_node.statements:
@@ -170,3 +187,11 @@ class Interpreter(ASTNodeVisitor):
         self.visit(ast_node.statement_list_node)
         print(Interpreter.PROGRAM_STACK)
         Interpreter.PROGRAM_STACK.pop()
+
+    def __is_same_type(self, type1, type2):
+        return type1 == type2
+
+    def __error(self, var_type, var_value_type):
+        raise TypeError(
+            f"Type mismatch: expected '{var_type}', got '{var_value_type}'."
+        )

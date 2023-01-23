@@ -9,6 +9,7 @@ from .abstract_syntax_tree import (
     AssignStatementNode,
     ConditionalStatementNode,
     WhileStatementNode,
+    ForStatementNode,
     VarTypeNode,
     VarDeclStatementNode,
     StatementListNode,
@@ -270,6 +271,14 @@ class Parser:
 
         return WhileStatementNode(condition_node, statement_list)
 
+    def __for_statement(self):
+        """
+        for_statement: K_FOR LEFT_PARENTHESIS K_VAR LEFT_PARENTHESIS variable_type RIGHT_PARENTHESIS variable_name
+                       K_FROM INT K_TO INT (K_STEP INT)? RIGHT_PARENTHESIS
+                       LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET
+        """
+        pass
+
     def __variable_type(self):
         """
         variable_type: K_INT | K_FLOAT | K_BOOL
@@ -337,6 +346,9 @@ class Parser:
         """
         if self.__current_token.type_ == Token.K_VAR:
             return self.__variable_declaration_statement()
+
+        if self.__current_token.type_ == Token.K_FOR:
+            return self.__for_statement()
 
         if self.__current_token.type_ == Token.K_WHILE:
             return self.__while_statement()

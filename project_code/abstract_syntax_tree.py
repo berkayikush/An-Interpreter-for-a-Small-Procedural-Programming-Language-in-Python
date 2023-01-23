@@ -113,6 +113,13 @@ class WhileStatementNode(AST):
         return self.__statement_list_node
 
 
+class ForStatementNode(AST):
+    def __init__(self, var_node, range_, statement_list_node):
+        self.__var_node = var_node
+        self.__range = range_
+        self.__statement_list_node = statement_list_node
+
+
 class VarTypeNode(AST):
     def __init__(self, type_token):
         self.__value = type_token.value

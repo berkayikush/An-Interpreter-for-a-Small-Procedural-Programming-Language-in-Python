@@ -8,17 +8,13 @@ from project_code.program_stack import ProgramStack, StackFrame
 
 def main():
     text = """
-    var(int) x, y;
-    y = 7;
-    x = ((y + 3) * 3) + 3;
+    var(int) a = 1;
     
-    while (y > 0) {
-        while (x > 0) {
-            x -= 10;
-        };
-        x += 1;
-        y -= 1;
+    if (a == 1) {
+        var(int) b = 2;
     };
+    
+    var(int) b = 3;
     """
 
     lexer = Lexer(text)
