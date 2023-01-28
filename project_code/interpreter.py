@@ -129,50 +129,6 @@ class Interpreter(ASTNodeVisitor):
             print(Interpreter.PROGRAM_STACK)
             Interpreter.PROGRAM_STACK.pop()
 
-    def visitRangeExprNode(self, ast_node):
-        start = self.visit(ast_node.start_node)
-        end = self.visit(ast_node.end_node)
-
-        return (
-            range(start, end)
-            if ast_node.step_node is None
-            else range(start, end, self.visit(ast_node.step_node))
-        )
-
-    def visitForStatementNode(self, ast_node):
-        # Create a new stack frame for the for statement here.
-        Interpreter.PROGRAM_STACK.push(
-            StackFrame(
-                "for statement",
-                StackFrame.FOR_STATEMENT,
-                scope_level=Interpreter.PROGRAM_STACK.peek().scope_level + 1,
-                outer_scope=Interpreter.PROGRAM_STACK.peek(),
-            )
-        )
-
-        print("Entering", "for statement", "scope")
-        print(Interpreter.PROGRAM_STACK)
-
-        range_ = self.visit(ast_node.range_expr_node)
-        var_value_type = str(type(range_.start)).split("'")[1]
-
-        self.visit(ast_node.var_decl_statement_node)
-        var_node = ast_node.var_decl_statement_node.variables[0]
-
-        curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
-        var_type = curr_stack_frame.get(var_node.value, access="type")
-
-        if not self.__is_same_type(var_type, var_value_type):
-            self.__error(var_type, var_value_type)
-
-        for val in range_:
-            curr_stack_frame.set(var_node.value, value=val)
-            print(Interpreter.PROGRAM_STACK)
-            self.visit(ast_node.statement_list_node)
-
-        print("Exiting", "for statement", "scope")
-        Interpreter.PROGRAM_STACK.pop()
-
     def visitWhileStatementNode(self, ast_node):
         while True:
             condition_result = self.visit(ast_node.condition)
@@ -196,6 +152,50 @@ class Interpreter(ASTNodeVisitor):
             print("Exiting", "while statement", "scope")
             print(Interpreter.PROGRAM_STACK)
             Interpreter.PROGRAM_STACK.pop()
+
+    def visitRangeExprNode(self, ast_node):
+        start = self.visit(ast_node.start_node)
+        end = self.visit(ast_node.end_node)
+
+        return (
+            range(start, end)
+            if ast_node.step_node is None
+            else range(start, end, self.visit(ast_node.step_node))
+        )
+
+    def visitForStatementNode(self, ast_node):
+        range_ = self.visit(ast_node.range_expr_node)
+        var_value_type = str(type(range_.start)).split("'")[1]
+
+        # Create a new stack frame for the for statement here.
+        Interpreter.PROGRAM_STACK.push(
+            StackFrame(
+                "for statement",
+                StackFrame.FOR_STATEMENT,
+                scope_level=Interpreter.PROGRAM_STACK.peek().scope_level + 1,
+                outer_scope=Interpreter.PROGRAM_STACK.peek(),
+            )
+        )
+
+        print("Entering", "for statement", "scope")
+        print(Interpreter.PROGRAM_STACK)
+
+        self.visit(ast_node.var_decl_statement_node)
+        var_node = ast_node.var_decl_statement_node.variables[0]
+
+        curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
+        var_type = curr_stack_frame.get(var_node.value, access="type")
+
+        if not self.__is_same_type(var_type, var_value_type):
+            self.__error(var_type, var_value_type)
+
+        for val in range_:
+            curr_stack_frame.set(var_node.value, value=val)
+            print(Interpreter.PROGRAM_STACK)
+            self.visit(ast_node.statement_list_node)
+
+        print("Exiting", "for statement", "scope")
+        Interpreter.PROGRAM_STACK.pop()
 
     def visitVarTypeNode(self, ast_node):
         pass

@@ -377,11 +377,13 @@ class Parser:
 
     def __statement(self):
         """
-        statement: variable_declaration_statement | while_loop_statement | conditional_statement |
-                   assignment_statement | empty_statement
+        statement: variable_declaration_statement SEMI_COLON | while_loop_statement | conditional_statement |
+                   assignment_statement SEMI_COLON | empty_statement
         """
         if self.__current_token.type_ == Token.K_VAR:
-            return self.__variable_declaration_statement()
+            curr_statement = self.__variable_declaration_statement()
+            self.__eat(Token.SEMI_COLON)
+            return curr_statement
 
         if self.__current_token.type_ == Token.K_FOR:
             return self.__for_statement()
@@ -393,20 +395,23 @@ class Parser:
             return self.__conditional_statement()
 
         if self.__current_token.type_ == Token.IDENTIFIER:
-            return self.__assign_statement()
+            curr_statement = self.__assign_statement()
+            self.__eat(Token.SEMI_COLON)
+            return curr_statement
 
         return self.__empty_statement()
 
     def __statement_list(self):
         """
-        statement_list: statement | statement SEMI_COLON statement_list
+        statement_list: statement statement_list | empty_statement
         """
         statment_list_node = StatementListNode()
-        statment_list_node.statements.append(self.__statement())
+        curr_statement = self.__statement()
+        statment_list_node.statements.append(curr_statement)
 
-        while self.__current_token.type_ == Token.SEMI_COLON:
-            self.__eat(Token.SEMI_COLON)
-            statment_list_node.statements.append(self.__statement())
+        while not isinstance(curr_statement, EmptyStatementNode):
+            curr_statement = self.__statement()
+            statment_list_node.statements.append(curr_statement)
 
         return statment_list_node
 

@@ -8,9 +8,13 @@ from project_code.program_stack import ProgramStack, StackFrame
 
 def main():
     text = """
-    for(var(int) a from 1 to 10 step 2) {
-        a += 1;
-    };
+    var(int) a = 5;
+    
+    if (a == 5) {
+        var(int) b = 10;
+    }
+    
+    var(int) b = 15;
     """
 
     lexer = Lexer(text)

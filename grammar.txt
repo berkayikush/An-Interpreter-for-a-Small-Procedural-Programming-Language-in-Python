@@ -16,9 +16,9 @@ The syntax of Compact is designed to be easy to read and understand.
 -----------------------
 program: statement_list
 
-statement_list: statement | statement SEMI_COLON statement_list
-statement: variable_declaration_statement | for_statement | while_statement | conditional_statement | 
-           assignment_statement | empty_statement
+statement_list: statement_list: statement statement_list | empty_statement
+statement: variable_declaration_statement SEMI_COLON | while_loop_statement | conditional_statement |
+           assignment_statement SEMI_COLON | empty_statement
 
 variable_declaration_statement: K_VAR LEFT_PARENTHESIS variable_type RIGHT_PARENTHESIS 
                                 variable_name (ASSIGN logical_expr)? (COMMA variable_name (ASSIGN logical_expr)?)*
