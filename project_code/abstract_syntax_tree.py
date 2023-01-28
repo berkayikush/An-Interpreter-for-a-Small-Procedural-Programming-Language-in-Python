@@ -113,11 +113,42 @@ class WhileStatementNode(AST):
         return self.__statement_list_node
 
 
+class RangeExprNode(AST):
+    def __init__(self, start_node, end_node, step_node):
+        self.__start_node = start_node
+        self.__end_node = end_node
+        self.__step_node = step_node
+
+    @property
+    def start_node(self):
+        return self.__start_node
+
+    @property
+    def end_node(self):
+        return self.__end_node
+
+    @property
+    def step_node(self):
+        return self.__step_node
+
+
 class ForStatementNode(AST):
-    def __init__(self, var_node, range_, statement_list_node):
-        self.__var_node = var_node
-        self.__range = range_
+    def __init__(self, var_decl_statement_node, range_expr_node, statement_list_node):
+        self.__var_decl_statement_node = var_decl_statement_node
+        self.__range_expr_node = range_expr_node
         self.__statement_list_node = statement_list_node
+
+    @property
+    def var_decl_statement_node(self):
+        return self.__var_decl_statement_node
+
+    @property
+    def range_expr_node(self):
+        return self.__range_expr_node
+
+    @property
+    def statement_list_node(self):
+        return self.__statement_list_node
 
 
 class VarTypeNode(AST):

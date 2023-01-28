@@ -6,7 +6,7 @@ from .scope_symbol_table import (
     BuiltInTypeSymbol,
     VariableSymbol,
     ConditionalSymbol,
-    WhileSymbol,
+    LoopSymbol,
 )
 from .error import SemanticAnalysisError
 
@@ -89,10 +89,35 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
             self.__current_scope_symbol_table.add_symbol(else_symbol)
 
+    def visitRangeExprNode(self, ast_node):
+        self.visit(ast_node.start_node)
+        self.visit(ast_node.end_node)
+
+        if ast_node.step_node is not None:
+            self.visit(ast_node.step_node)
+
+    def visitForStatementNode(self, ast_node):
+        for_symbol = LoopSymbol("for", BuiltInTypeSymbol(Token.K_FOR))
+        self.__current_scope_symbol_table.add_symbol(for_symbol)
+
+        self.__current_scope_symbol_table = ScopeSymbolTable(
+            scope_name=for_symbol.name,
+            scope_level=self.__current_scope_symbol_table.scope_level + 1,
+            outer_scope=self.__current_scope_symbol_table,
+        )
+
+        self.visit(ast_node.var_decl_statement_node)
+        self.visit(ast_node.range_expr_node)
+
+        self.visit(ast_node.statement_list_node)
+        self.__current_scope_symbol_table = (
+            self.__current_scope_symbol_table.outer_scope
+        )
+
     def visitWhileStatementNode(self, ast_node):
         self.visit(ast_node.condition)
 
-        while_symbol = WhileSymbol("while", BuiltInTypeSymbol(Token.K_WHILE))
+        while_symbol = LoopSymbol("while", BuiltInTypeSymbol(Token.K_WHILE))
         self.__current_scope_symbol_table.add_symbol(while_symbol)
 
         self.__current_scope_symbol_table = ScopeSymbolTable(
@@ -126,6 +151,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
                 or self.__current_scope_symbol_table.scope_name.startswith("elseif")
                 or self.__current_scope_symbol_table.scope_name.startswith("else")
                 or self.__current_scope_symbol_table.scope_name.startswith("while")
+                or self.__current_scope_symbol_table.scope_name.startswith("for")
             )
 
             if (

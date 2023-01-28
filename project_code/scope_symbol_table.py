@@ -15,6 +15,7 @@ class ScopeSymbolTable:
             "elseif": BuiltInTypeSymbol(Token.K_ELSEIF),
             "else": BuiltInTypeSymbol(Token.K_ELSE),
             "while": BuiltInTypeSymbol(Token.K_WHILE),
+            "for": BuiltInTypeSymbol(Token.K_FOR),
         }
 
     @property
@@ -80,6 +81,6 @@ class ConditionalSymbol(Symbol):
         super().__init__(name=f"{name}_{id(self)}", type_=type_)
 
 
-class WhileSymbol(Symbol):
+class LoopSymbol(Symbol):
     def __init__(self, name, type_):
         super().__init__(name=f"{name}_{id(self)}", type_=type_)

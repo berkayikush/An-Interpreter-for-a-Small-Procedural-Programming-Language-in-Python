@@ -9,6 +9,7 @@ from .abstract_syntax_tree import (
     AssignStatementNode,
     ConditionalStatementNode,
     WhileStatementNode,
+    RangeExprNode,
     ForStatementNode,
     VarTypeNode,
     VarDeclStatementNode,
@@ -271,13 +272,48 @@ class Parser:
 
         return WhileStatementNode(condition_node, statement_list)
 
+    def __range_expr(self):
+        """
+        range_expr: logical_expr K_TO logical_expr (K_STEP logical_expr)?
+        """
+        start_node = self.__logical_expr()
+        self.__eat(Token.K_TO)
+
+        end_node = self.__logical_expr()
+        step_node = None
+
+        if self.__current_token.type_ == Token.K_STEP:
+            self.__eat(Token.K_STEP)
+            step_node = self.__logical_expr()
+
+        return RangeExprNode(start_node, end_node, step_node)
+
     def __for_statement(self):
         """
-        for_statement: K_FOR LEFT_PARENTHESIS K_VAR LEFT_PARENTHESIS variable_type RIGHT_PARENTHESIS variable_name
-                       K_FROM INT K_TO INT (K_STEP INT)? RIGHT_PARENTHESIS
-                       LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET
+        for_statement: K_FOR LEFT_PARENTHESIS K_VAR LEFT_PARENTHESIS variable_type RIGHT_PARENTHESIS IDENTIFIER
+                       K_FROM range_expr RIGHT_PARENTHESIS LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET
         """
-        pass
+        self.__eat(Token.K_FOR)
+        self.__eat(Token.LEFT_PARENTHESIS)
+
+        self.__eat(Token.K_VAR)
+        self.__eat(Token.LEFT_PARENTHESIS)
+
+        type_node = self.__variable_type()
+        self.__eat(Token.RIGHT_PARENTHESIS)
+
+        var_node = self.__variable_name()
+        var_decl = VarDeclStatementNode(type_node, [var_node])
+        self.__eat(Token.K_FROM)
+
+        range_node = self.__range_expr()
+        self.__eat(Token.RIGHT_PARENTHESIS)
+
+        self.__eat(Token.LEFT_CURLY_BRACKET)
+        statement_list = self.__statement_list()
+        self.__eat(Token.RIGHT_CURLY_BRACKET)
+
+        return ForStatementNode(var_decl, range_node, statement_list)
 
     def __variable_type(self):
         """
