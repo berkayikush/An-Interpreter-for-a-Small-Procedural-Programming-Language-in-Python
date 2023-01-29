@@ -97,6 +97,8 @@ class SemanticAnalyzer(ASTNodeVisitor):
             self.visit(ast_node.step_node)
 
     def visitForStatementNode(self, ast_node):
+        self.visit(ast_node.range_expr_node)
+
         for_symbol = LoopSymbol("for", BuiltInTypeSymbol(Token.K_FOR))
         self.__current_scope_symbol_table.add_symbol(for_symbol)
 
@@ -107,9 +109,8 @@ class SemanticAnalyzer(ASTNodeVisitor):
         )
 
         self.visit(ast_node.var_decl_statement_node)
-        self.visit(ast_node.range_expr_node)
-
         self.visit(ast_node.statement_list_node)
+
         self.__current_scope_symbol_table = (
             self.__current_scope_symbol_table.outer_scope
         )
