@@ -25,6 +25,10 @@ class Lexer:
                 self.__handle_multiline_comment()
                 continue
 
+            if self.__current_char == '"':
+                str_ = self.__convert_to_str()
+                return Token(Token.STR, str_, self.__line, self.__col)
+
             if self.__current_char.isalpha():
                 identifier = self.__convert_to_id()
 
@@ -74,6 +78,10 @@ class Lexer:
                 token_type, parenthesis = self.__convert_to_parenthesis()
                 return Token(token_type, parenthesis, self.__line, self.__col)
 
+            if self.__is_bracket():
+                token_type, bracket = self.__convert_to_bracket()
+                return Token(token_type, bracket, self.__line, self.__col)
+
             self.__error()
 
         return Token(Token.EOF, None)
@@ -94,7 +102,7 @@ class Lexer:
 
     def __check_next_char(self, offset=1):
         """
-        Will be useful and used for differentiating between "=", and "==".
+        Will be useful and used for instance, differentiating between "=", and "==".
         """
         next_char_at = self.__char_pos + offset
 
@@ -144,6 +152,26 @@ class Lexer:
 
     def __is_parenthesis(self):
         return self.__current_char in ["(", ")"]
+
+    def __is_bracket(self):
+        return self.__current_char in ["[", "]"]
+
+    def __convert_to_str(self):
+        str_ = ""
+        escape_chars_map = {"n": "\n", "t": "\t", "r": "\r", "0": "\0"}
+        self.__advance()
+
+        while self.__current_char is not None and self.__current_char != '"':
+            if self.__current_char == "\\":
+                self.__advance()
+                str_ += escape_chars_map.get(self.__current_char, self.__current_char)
+            else:
+                str_ += self.__current_char
+
+            self.__advance()
+
+        self.__advance()
+        return str_
 
     def __convert_to_num(self):
         num = ""
@@ -277,6 +305,17 @@ class Lexer:
             token_type = Token.RIGHT_PARENTHESIS
 
         return token_type, parenthesis
+
+    def __convert_to_bracket(self):
+        bracket = self.__current_char
+        self.__advance()
+
+        if bracket == "[":
+            token_type = Token.LEFT_SQUARE_BRACKET
+        else:
+            token_type = Token.RIGHT_SQUARE_BRACKET
+
+        return token_type, bracket
 
     def __error(self):
         raise LexerError(

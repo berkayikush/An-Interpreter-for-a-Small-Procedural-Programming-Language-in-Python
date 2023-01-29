@@ -29,6 +29,15 @@ class BoolNode(AST):
         return self.__value
 
 
+class StrNode(AST):
+    def __init__(self, string_token):
+        self.__value = string_token.value
+
+    @property
+    def value(self):
+        return self.__value
+
+
 class UnaryOpNode(AST):
     def __init__(self, op_token, child_node):
         self.__op_token = op_token
@@ -133,9 +142,9 @@ class RangeExprNode(AST):
 
 
 class ForStatementNode(AST):
-    def __init__(self, var_decl_statement_node, range_expr_node, statement_list_node):
+    def __init__(self, var_decl_statement_node, to_loop_through, statement_list_node):
         self.__var_decl_statement_node = var_decl_statement_node
-        self.__range_expr_node = range_expr_node
+        self.__to_loop_through = to_loop_through
         self.__statement_list_node = statement_list_node
 
     @property
@@ -143,8 +152,8 @@ class ForStatementNode(AST):
         return self.__var_decl_statement_node
 
     @property
-    def range_expr_node(self):
-        return self.__range_expr_node
+    def to_loop_through(self):
+        return self.__to_loop_through
 
     @property
     def statement_list_node(self):

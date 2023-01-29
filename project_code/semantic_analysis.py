@@ -16,6 +16,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
         self.__current_scope_symbol_table = ScopeSymbolTable(
             scope_name="global", scope_level=1, outer_scope=None
         )
+        self.__current_scope_symbol_table.add_built_in_symbols()
 
     def visitVarNode(self, ast_node):
         variable_symbol = self.__current_scope_symbol_table.get_symbol(ast_node.value)
@@ -23,25 +24,107 @@ class SemanticAnalyzer(ASTNodeVisitor):
         if variable_symbol is None:
             self.__error(SemanticAnalysisError.IDENTIFIER_NOT_FOUND, ast_node.value)
 
+        return variable_symbol.type_
+
     def visitNumberNode(self, ast_node):
-        pass
+        if isinstance(ast_node.value, int):
+            return BuiltInTypeSymbol(Token.K_INT)
+
+        return BuiltInTypeSymbol(Token.K_FLOAT)
 
     def visitBoolNode(self, ast_node):
-        pass
+        return BuiltInTypeSymbol(Token.K_STR)
+
+    def visitStrNode(self, ast_node):
+        return BuiltInTypeSymbol(Token.K_STR)
 
     def visitUnaryOpNode(self, ast_node):
-        self.visit(ast_node.child_node)
+        op_token_type = ast_node.op_token.type_
+        child_node_type = self.visit(ast_node.child_node).name
+
+        if op_token_type == Token.K_NOT:
+            return BuiltInTypeSymbol(Token.K_BOOL)
+
+        if op_token_type in (Token.MINUS, Token.PLUS):
+            match child_node_type:
+                case Token.K_STR:
+                    self.__error(
+                        SemanticAnalysisError.INVALID_OPERATION, ast_node.op_token.value
+                    )
+
+                case Token.K_FLOAT:
+                    return BuiltInTypeSymbol(Token.K_FLOAT)
+
+                case _:  # Token.K_INT, Token.K_BOOL
+                    return BuiltInTypeSymbol(Token.K_INT)
 
     def visitBinaryOpNode(self, ast_node):
-        self.visit(ast_node.left_node)
-        self.visit(ast_node.right_node)
+        left_node_type = self.visit(ast_node.left_node).name
+        right_node_type = self.visit(ast_node.right_node).name
+        op_token_type = ast_node.op_token.type_
+
+        if op_token_type == Token.PLUS and (
+            left_node_type == Token.K_STR and right_node_type == Token.K_STR
+        ):
+            return BuiltInTypeSymbol(Token.K_STR)
+
+        if op_token_type in (
+            Token.PLUS,
+            Token.MINUS,
+            Token.MULTIPLICATION,
+            Token.FLOAT_DIVISION,
+            Token.INT_DIVISION,
+            Token.MODULO,
+        ):
+            if Token.K_STR in (left_node_type, right_node_type):
+                self.__error(
+                    SemanticAnalysisError.INVALID_OPERATION, ast_node.op_token.value
+                )
+
+            if (Token.K_FLOAT in (left_node_type, right_node_type)) and (
+                op_token_type != Token.INT_DIVISION
+            ):
+                return BuiltInTypeSymbol(Token.K_FLOAT)
+
+            return BuiltInTypeSymbol(Token.K_INT)
+
+        if op_token_type in (Token.EQUALS, Token.NOT_EQUALS):
+            return BuiltInTypeSymbol(Token.K_BOOL)
+
+        if op_token_type in (
+            Token.LESS_THAN,
+            Token.LESS_THAN_OR_EQUALS,
+            Token.GREATER_THAN,
+            Token.GREATER_THAN_OR_EQUALS,
+        ):
+            if left_node_type == Token.K_STR and right_node_type == Token.K_STR:
+                return BuiltInTypeSymbol(Token.K_BOOL)
+
+            if Token.K_STR in (left_node_type, right_node_type):
+                self.__error(
+                    SemanticAnalysisError.INVALID_OPERATION, ast_node.op_token.value
+                )
+
+            return BuiltInTypeSymbol(Token.K_BOOL)
+
+        if op_token_type == Token.K_AND:
+            return BuiltInTypeSymbol(right_node_type)
+
+        if op_token_type == Token.K_OR:
+            return BuiltInTypeSymbol(left_node_type)
 
     def visitEmptyStatementNode(self, ast_node):
         pass
 
     def visitAssignStatementNode(self, ast_node):
-        self.visit(ast_node.right_node)
-        self.visit(ast_node.left_node)
+        var_val_type = self.visit(ast_node.right_node).name
+        var_type = self.visit(ast_node.left_node).name
+
+        if var_val_type != var_type:
+            self.__error(
+                SemanticAnalysisError.INVALID_ASSIGNMENT,
+                f"Cannot assign {var_val_type} to {var_type}",
+            )
 
     def visitConditionalStatementNode(self, ast_node):
         symbol_names = []
@@ -90,14 +173,39 @@ class SemanticAnalyzer(ASTNodeVisitor):
             self.__current_scope_symbol_table.add_symbol(else_symbol)
 
     def visitRangeExprNode(self, ast_node):
-        self.visit(ast_node.start_node)
-        self.visit(ast_node.end_node)
+        start_type = self.visit(ast_node.start_node).name
+
+        if start_type not in (Token.K_INT, Token.K_BOOL):
+            self.__error(
+                SemanticAnalysisError.INVALID_OPERATION,
+                f"Range start value must be of type {Token.K_INT}",
+            )
+
+        end_type = self.visit(ast_node.end_node).name
+
+        if end_type not in (Token.K_INT, Token.K_BOOL):
+            self.__error(
+                SemanticAnalysisError.INVALID_OPERATION,
+                f"Range end value must be of type {Token.K_INT}",
+            )
 
         if ast_node.step_node is not None:
-            self.visit(ast_node.step_node)
+            step_type = self.visit(ast_node.step_node)
+
+            if step_type not in (Token.K_INT, Token.K_BOOL):
+                self.__error(
+                    SemanticAnalysisError.INVALID_OPERATION,
+                    f"Range step value must be of type {Token.K_INT}",
+                )
 
     def visitForStatementNode(self, ast_node):
-        self.visit(ast_node.range_expr_node)
+        to_loop_through_type = self.visit(ast_node.to_loop_through).name
+
+        if to_loop_through_type != Token.K_STR:
+            self.__error(
+                SemanticAnalysisError.INVALID_OPERATION,
+                f"Cannot loop through {to_loop_through_type}",
+            )
 
         for_symbol = LoopSymbol("for", BuiltInTypeSymbol(Token.K_FOR))
         self.__current_scope_symbol_table.add_symbol(for_symbol)
@@ -109,8 +217,15 @@ class SemanticAnalyzer(ASTNodeVisitor):
         )
 
         self.visit(ast_node.var_decl_statement_node)
-        self.visit(ast_node.statement_list_node)
+        var_type = self.visit(ast_node.var_decl_statement_node.variables[0]).name
 
+        if var_type != to_loop_through_type:
+            self.__error(
+                SemanticAnalysisError.INVALID_OPERATION,
+                f"Cannot loop through {to_loop_through_type} with {var_type}",
+            )
+
+        self.visit(ast_node.statement_list_node)
         self.__current_scope_symbol_table = (
             self.__current_scope_symbol_table.outer_scope
         )
@@ -141,7 +256,14 @@ class SemanticAnalyzer(ASTNodeVisitor):
             if isinstance(variable, VarNode):
                 variable_name = variable.value
             else:
-                self.visit(variable.right_node)
+                var_val_type = self.visit(variable.right_node).name
+
+                if var_val_type != type_symbol.name:
+                    self.__error(
+                        SemanticAnalysisError.INVALID_ASSIGNMENT,
+                        f"Cannot assign {var_val_type} to {type_symbol}",
+                    )
+
                 variable_name = variable.left_node.value
 
             variable_symbol = VariableSymbol(variable_name, type_symbol)

@@ -12,13 +12,6 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(token.type_, Token.EOF)
         self.assertEqual(token.value, None)
 
-    # def test_get_next_token_with_single_line_comment(self):
-    #     text = "// This is a single line comment."
-    #     lexer = Lexer(text)
-    #     token = lexer.get_next_token()
-    #     self.assertEqual(token.type_, Token.SINGLE_LINE_COMMENT)
-    #     self.assertEqual(token.value, text)
-
     def test_get_next_token_with_multi_line_comment(self):
         text = "/* This is a multi line comment. */"
         lexer = Lexer(text)
@@ -105,6 +98,12 @@ class TestLexer(unittest.TestCase):
         token = lexer.get_next_token()
         self.assertEqual(token.type_, Token.EOF)
         self.assertEqual(token.value, None)
+
+    def test_get_next_token_with_string(self):
+        text = '"Hello World!"'
+        lexer = Lexer(text)
+        token = lexer.get_next_token()
+        self.assertEqual(token.type_, Token.STR)
 
     def test_get_next_token_with_punctuation(self):
         text = "(),;{}"

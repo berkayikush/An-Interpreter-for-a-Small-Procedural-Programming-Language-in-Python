@@ -5,18 +5,9 @@ class ScopeSymbolTable:
     def __init__(self, scope_name, scope_level, outer_scope=None):
         self.__scope_name = scope_name
         self.__scope_level = scope_level
-        self.__outer_scope = outer_scope
 
-        self.__symbols = {
-            "int": BuiltInTypeSymbol(Token.K_INT),
-            "float": BuiltInTypeSymbol(Token.K_FLOAT),
-            "bool": BuiltInTypeSymbol(Token.K_BOOL),
-            "if": BuiltInTypeSymbol(Token.K_IF),
-            "elseif": BuiltInTypeSymbol(Token.K_ELSEIF),
-            "else": BuiltInTypeSymbol(Token.K_ELSE),
-            "while": BuiltInTypeSymbol(Token.K_WHILE),
-            "for": BuiltInTypeSymbol(Token.K_FOR),
-        }
+        self.__outer_scope = outer_scope
+        self.__symbols = {}
 
     @property
     def scope_name(self):
@@ -29,6 +20,19 @@ class ScopeSymbolTable:
     @property
     def outer_scope(self):
         return self.__outer_scope
+
+    def add_built_in_symbols(self):
+        self.__symbols = {
+            "int": BuiltInTypeSymbol(Token.K_INT),
+            "float": BuiltInTypeSymbol(Token.K_FLOAT),
+            "bool": BuiltInTypeSymbol(Token.K_BOOL),
+            "str": BuiltInTypeSymbol(Token.K_STR),
+            "if": BuiltInTypeSymbol(Token.K_IF),
+            "elseif": BuiltInTypeSymbol(Token.K_ELSEIF),
+            "else": BuiltInTypeSymbol(Token.K_ELSE),
+            "while": BuiltInTypeSymbol(Token.K_WHILE),
+            "for": BuiltInTypeSymbol(Token.K_FOR),
+        }
 
     def add_symbol(self, symbol):
         self.__symbols[symbol.name] = symbol
@@ -68,8 +72,7 @@ class BuiltInTypeSymbol(Symbol):
 
 class VariableSymbol(Symbol):
     """
-    Used to make sure that we assign the correct type to a variable.
-    Also used to make sure that a variable is declared before it is used.
+    Used to make sure that a variable is declared before it is used.
     """
 
     def __init__(self, name, type_):

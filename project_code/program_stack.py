@@ -48,12 +48,12 @@ class StackFrame:
     def outer_scope(self):
         return self.__outer_scope
 
-    def get(self, key, access="value", default=None):
+    def get(self, key, default=None):
         if self.__check_variable(key):
-            return self.__variables[key][access]
+            return self.__variables[key]
 
         if self.__outer_scope is not None:
-            return self.__outer_scope.get(key, access)
+            return self.__outer_scope.get(key)
 
         return default
 
@@ -62,7 +62,7 @@ class StackFrame:
 
     def set(self, key, value):
         if self.__check_variable(key):
-            self.__variables[key]["value"] = value
+            self.__variables[key] = value
             return
 
         self.__outer_scope.set(key, value)
@@ -73,11 +73,8 @@ class StackFrame:
     def __str__(self):
         lines = [f"{self.__scope_level} {self.__type_} {self.__name}"]
 
-        for key, var in self.__variables.items():
-            type_ = var["type"]
-            value = var["value"] if "value" in var else None
-
-            lines.append(f"\t{type_} {key:<20} = {value}")
+        for key, value in self.__variables.items():
+            lines.append(f"\t{key:<20} = {value}")
 
         s = "\n".join(lines)
         return s

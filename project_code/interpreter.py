@@ -1,4 +1,4 @@
-from .abstract_syntax_tree import NumberNode, AssignStatementNode
+from .abstract_syntax_tree import AssignStatementNode
 from .tokens import Token
 from .visit_ast_node import ASTNodeVisitor
 from .program_stack import ProgramStack, StackFrame
@@ -18,6 +18,11 @@ class Interpreter(ASTNodeVisitor):
 
     def visitVarNode(self, ast_node):
         curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
+        var_value = curr_stack_frame.get(ast_node.value)
+
+        if var_value is None:
+            raise Exception(f"Variable {ast_node.value} is not defined.")
+
         return curr_stack_frame.get(ast_node.value)
 
     def visitNumberNode(self, ast_node):
@@ -28,6 +33,9 @@ class Interpreter(ASTNodeVisitor):
             return True
 
         return False
+
+    def visitStrNode(self, ast_node):
+        return ast_node.value
 
     def visitUnaryOpNode(self, ast_node):
         match (ast_node.op_token.type_):
@@ -76,15 +84,9 @@ class Interpreter(ASTNodeVisitor):
 
     def visitAssignStatementNode(self, ast_node):
         curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
-        var_type = curr_stack_frame.get(ast_node.left_node.value, access="type")
-
-        var_value = self.visit(ast_node.right_node)
-        var_value_type = str(type(var_value)).split("'")[1]
-
-        if not self.__is_same_type(var_type, var_value_type):
-            self.__error(var_type, var_value_type)
-
-        curr_stack_frame.set(ast_node.left_node.value, value=var_value)
+        curr_stack_frame.set(
+            ast_node.left_node.value, value=self.visit(ast_node.right_node)
+        )
 
     def visitConditionalStatementNode(self, ast_node):
         for i, (condition, statement) in enumerate(ast_node.if_cases):
@@ -164,8 +166,7 @@ class Interpreter(ASTNodeVisitor):
         )
 
     def visitForStatementNode(self, ast_node):
-        range_ = self.visit(ast_node.range_expr_node)
-        var_value_type = str(type(range_.start)).split("'")[1]
+        to_loop_through = self.visit(ast_node.to_loop_through)
 
         # Create a new stack frame for the for statement here.
         Interpreter.PROGRAM_STACK.push(
@@ -184,12 +185,8 @@ class Interpreter(ASTNodeVisitor):
         var_node = ast_node.var_decl_statement_node.variables[0]
 
         curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
-        var_type = curr_stack_frame.get(var_node.value, access="type")
 
-        if not self.__is_same_type(var_type, var_value_type):
-            self.__error(var_type, var_value_type)
-
-        for val in range_:
+        for val in to_loop_through:
             curr_stack_frame.set(var_node.value, value=val)
             print(Interpreter.PROGRAM_STACK)
             self.visit(ast_node.statement_list_node)
@@ -202,22 +199,14 @@ class Interpreter(ASTNodeVisitor):
 
     def visitVarDeclStatementNode(self, ast_node):
         curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
-        var_type = ast_node.var_type_node.value
 
         for variable in ast_node.variables:
             if isinstance(variable, AssignStatementNode):
                 var_value = self.visit(variable.right_node)
-                var_value_type = str(type(var_value)).split("'")[1]
+                curr_stack_frame[variable.left_node.value] = var_value
 
-                if not self.__is_same_type(var_type, var_value_type):
-                    self.__error(var_type, var_value_type)
-
-                curr_stack_frame[variable.left_node.value] = {
-                    "type": var_type,
-                    "value": var_value,
-                }
             else:
-                curr_stack_frame[variable.value] = {"type": var_type}
+                curr_stack_frame[variable.value] = None
 
     def visitStatementListNode(self, ast_node):
         for statement in ast_node.statements:
@@ -230,11 +219,3 @@ class Interpreter(ASTNodeVisitor):
         self.visit(ast_node.statement_list_node)
         print(Interpreter.PROGRAM_STACK)
         Interpreter.PROGRAM_STACK.pop()
-
-    def __is_same_type(self, type1, type2):
-        return type1 == type2
-
-    def __error(self, var_type, var_value_type):
-        raise TypeError(
-            f"Type mismatch: expected '{var_type}', got '{var_value_type}'."
-        )

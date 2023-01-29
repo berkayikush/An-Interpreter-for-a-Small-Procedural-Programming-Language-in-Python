@@ -12,6 +12,7 @@ class Token:
     INT = "INT"
     FLOAT = "FLOAT"
     BOOL = "BOOL"
+    STR = "STR"
 
     #########################
     # Arithmetic Operations #
@@ -44,15 +45,17 @@ class Token:
     GREATER_THAN = "GREATER_THAN"  # ">"
     GREATER_THAN_OR_EQUALS = "GREATER_THAN_OR_EQUALS"  # ">="
 
-    ######################
-    # Logical Operations #
-    ######################
-
     ###############
     # Parentheses #
     ###############
     LEFT_PARENTHESIS = "LEFT_PARENTHESIS"  # "("
     RIGHT_PARENTHESIS = "RIGHT_PARENTHESIS"  # ")"
+
+    ############
+    # Brackets #
+    ############
+    LEFT_SQUARE_BRACKET = "LEFT_SQUARE_BRACKET"  # "["
+    RIGHT_SQUARE_BRACKET = "RIGHT_SQUARE_BRACKET"  # "]"
 
     ###########
     # Wrapper #
@@ -67,6 +70,7 @@ class Token:
     K_INT = "K_INT"
     K_FLOAT = "K_FLOAT"
     K_BOOL = "K_BOOL"
+    K_STR = "K_STR"
     K_AND = "K_AND"
     K_OR = "K_OR"
     K_NOT = "K_NOT"
@@ -84,6 +88,7 @@ class Token:
         "int": K_INT,
         "float": K_FLOAT,
         "bool": K_BOOL,
+        "str": K_STR,
         "and": K_AND,
         "or": K_OR,
         "not": K_NOT,

@@ -38,15 +38,9 @@ class TestParser(unittest.TestCase):
         self.assertIsInstance(
             tree.statement_list_node.statements[0], VarDeclStatementNode
         )
-
-    def test_parse_with_variable_assignment(self):
-        lexer = Lexer("x = 5;")
-        parser = Parser(lexer)
-        tree = parser.parse()
-
-        self.assertIsInstance(tree, ProgramNode)
-        self.assertIsInstance(tree.statement_list_node, StatementListNode)
-
         self.assertIsInstance(
-            tree.statement_list_node.statements[0], AssignStatementNode
+            tree.statement_list_node.statements[0].var_type_node, VarTypeNode
+        )
+        self.assertEqual(
+            tree.statement_list_node.statements[0].var_type_node.value, "int"
         )

@@ -3,6 +3,7 @@ from .abstract_syntax_tree import (
     VarNode,
     NumberNode,
     BoolNode,
+    StrNode,
     UnaryOpNode,
     BinaryOpNode,
     EmptyStatementNode,
@@ -59,7 +60,7 @@ class Parser:
 
     def __factor(self):
         """
-        factor : (INT | FLOAT)
+        factor : (INT | FLOAT | BOOL | STRING)
                  | BOOL
                  | LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS
                  | (PLUS | MINUS) factor
@@ -74,6 +75,10 @@ class Parser:
         if token.type_ == Token.BOOL:
             self.__eat(token.type_)
             return BoolNode(bool_token=token)
+
+        if token.type_ == Token.STR:
+            self.__eat(token.type_)
+            return StrNode(string_token=token)
 
         if token.type_ in (Token.PLUS, Token.MINUS):
             self.__eat(token.type_)
@@ -274,7 +279,7 @@ class Parser:
 
     def __range_expr(self):
         """
-        range_expr: logical_expr K_TO logical_expr (K_STEP logical_expr)?
+        range_expr: K_RANGE logical_expr K_TO logical_expr (K_STEP logical_expr)?
         """
         start_node = self.__logical_expr()
         self.__eat(Token.K_TO)
@@ -290,8 +295,9 @@ class Parser:
 
     def __for_statement(self):
         """
-        for_statement: K_FOR LEFT_PARENTHESIS K_VAR LEFT_PARENTHESIS variable_type RIGHT_PARENTHESIS IDENTIFIER
-                       K_FROM range_expr RIGHT_PARENTHESIS LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET
+        for_statement: K_FOR LEFT_PARENTHESIS K_VAR LEFT_PARENTHESIS variable_type RIGHT_PARENTHESIS variable_name
+                       K_FROM logical_expr RIGHT_PARENTHESIS
+                       LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET
         """
         self.__eat(Token.K_FOR)
         self.__eat(Token.LEFT_PARENTHESIS)
@@ -306,18 +312,18 @@ class Parser:
         var_decl = VarDeclStatementNode(type_node, [var_node])
         self.__eat(Token.K_FROM)
 
-        range_node = self.__range_expr()
+        to_loop_through = self.__logical_expr()
         self.__eat(Token.RIGHT_PARENTHESIS)
 
         self.__eat(Token.LEFT_CURLY_BRACKET)
         statement_list = self.__statement_list()
         self.__eat(Token.RIGHT_CURLY_BRACKET)
 
-        return ForStatementNode(var_decl, range_node, statement_list)
+        return ForStatementNode(var_decl, to_loop_through, statement_list)
 
     def __variable_type(self):
         """
-        variable_type: K_INT | K_FLOAT | K_BOOL
+        variable_type: K_INT | K_FLOAT | K_BOOL | K_STRING
         """
         token = self.__current_token
 
@@ -330,8 +336,12 @@ class Parser:
                 self.__eat(Token.K_FLOAT)
                 return VarTypeNode(token)
 
-            case _:
+            case Token.K_BOOL:
                 self.__eat(Token.K_BOOL)
+                return VarTypeNode(token)
+
+            case _:
+                self.__eat(Token.K_STR)
                 return VarTypeNode(token)
 
     def __variable_declaration_statement(self):
