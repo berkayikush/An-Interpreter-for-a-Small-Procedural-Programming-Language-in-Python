@@ -190,7 +190,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
             )
 
         if ast_node.step_node is not None:
-            step_type = self.visit(ast_node.step_node)
+            step_type = self.visit(ast_node.step_node).name
 
             if step_type not in (Token.K_INT, Token.K_BOOL):
                 self.__error(
@@ -198,10 +198,12 @@ class SemanticAnalyzer(ASTNodeVisitor):
                     f"Range step value must be of type {Token.K_INT}",
                 )
 
+        return BuiltInTypeSymbol(Token.K_RANGE)
+
     def visitForStatementNode(self, ast_node):
         to_loop_through_type = self.visit(ast_node.to_loop_through).name
 
-        if to_loop_through_type != Token.K_STR:
+        if to_loop_through_type not in (Token.K_RANGE, Token.K_STR):
             self.__error(
                 SemanticAnalysisError.INVALID_OPERATION,
                 f"Cannot loop through {to_loop_through_type}",
@@ -218,8 +220,13 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
         self.visit(ast_node.var_decl_statement_node)
         var_type = self.visit(ast_node.var_decl_statement_node.variables[0]).name
+        var_val_type = (
+            self.visit(ast_node.to_loop_through.start_node).name
+            if to_loop_through_type == Token.K_RANGE
+            else Token.K_STR
+        )
 
-        if var_type != to_loop_through_type:
+        if var_type != var_val_type:
             self.__error(
                 SemanticAnalysisError.INVALID_OPERATION,
                 f"Cannot loop through {to_loop_through_type} with {var_type}",

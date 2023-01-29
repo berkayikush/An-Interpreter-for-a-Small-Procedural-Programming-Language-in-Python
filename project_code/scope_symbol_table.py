@@ -32,6 +32,7 @@ class ScopeSymbolTable:
             "else": BuiltInTypeSymbol(Token.K_ELSE),
             "while": BuiltInTypeSymbol(Token.K_WHILE),
             "for": BuiltInTypeSymbol(Token.K_FOR),
+            "range": BuiltInTypeSymbol(Token.K_RANGE),
         }
 
     def add_symbol(self, symbol):

@@ -80,8 +80,7 @@ class Token:
     K_WHILE = "K_WHILE"
     K_FOR = "K_FOR"
     K_FROM = "K_FROM"
-    K_TO = "K_TO"
-    K_STEP = "K_STEP"
+    K_RANGE = "K_RANGE"
 
     KEYWORDS = {
         "var": K_VAR,
@@ -98,8 +97,7 @@ class Token:
         "while": K_WHILE,
         "for": K_FOR,
         "from": K_FROM,
-        "to": K_TO,
-        "step": K_STEP,
+        "range": K_RANGE,
     }
 
     ###########

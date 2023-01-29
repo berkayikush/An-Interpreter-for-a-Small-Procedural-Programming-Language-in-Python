@@ -279,24 +279,28 @@ class Parser:
 
     def __range_expr(self):
         """
-        range_expr: K_RANGE logical_expr K_TO logical_expr (K_STEP logical_expr)?
+        range_expr: K_RANGE LEFT_PARENTHESIS logical_expr COMMA logical_expr (COMMA logical_expr)? RIGHT_PARENTHESIS
         """
+        self.__eat(Token.K_RANGE)
+        self.__eat(Token.LEFT_PARENTHESIS)
+
         start_node = self.__logical_expr()
-        self.__eat(Token.K_TO)
+        self.__eat(Token.COMMA)
 
         end_node = self.__logical_expr()
         step_node = None
 
-        if self.__current_token.type_ == Token.K_STEP:
-            self.__eat(Token.K_STEP)
+        if self.__current_token.type_ == Token.COMMA:
+            self.__eat(Token.COMMA)
             step_node = self.__logical_expr()
 
+        self.__eat(Token.RIGHT_PARENTHESIS)
         return RangeExprNode(start_node, end_node, step_node)
 
     def __for_statement(self):
         """
         for_statement: K_FOR LEFT_PARENTHESIS K_VAR LEFT_PARENTHESIS variable_type RIGHT_PARENTHESIS variable_name
-                       K_FROM logical_expr RIGHT_PARENTHESIS
+                       K_FROM (range_expr | logical_expr) RIGHT_PARENTHESIS
                        LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET
         """
         self.__eat(Token.K_FOR)
@@ -312,7 +316,11 @@ class Parser:
         var_decl = VarDeclStatementNode(type_node, [var_node])
         self.__eat(Token.K_FROM)
 
-        to_loop_through = self.__logical_expr()
+        to_loop_through = (
+            self.__range_expr()
+            if self.__current_token.type_ == Token.K_RANGE
+            else self.__logical_expr()
+        )
         self.__eat(Token.RIGHT_PARENTHESIS)
 
         self.__eat(Token.LEFT_CURLY_BRACKET)
@@ -323,7 +331,7 @@ class Parser:
 
     def __variable_type(self):
         """
-        variable_type: K_INT | K_FLOAT | K_BOOL | K_STRING
+        variable_type: K_INT | K_FLOAT | K_BOOL | K_STR
         """
         token = self.__current_token
 

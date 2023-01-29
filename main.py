@@ -7,9 +7,10 @@ from project_code.program_stack import ProgramStack, StackFrame
 
 
 def main():
-    text = """
-    var(int) a;
-    var(int) b = 2 + a;
+    text = """    
+    for (var(int) i from range(0, 10, 2)) {
+        
+    }
     """
 
     lexer = Lexer(text)
