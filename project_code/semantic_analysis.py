@@ -223,7 +223,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
         var_val_type = (
             self.visit(ast_node.to_loop_through.start_node).name
             if to_loop_through_type == Token.K_RANGE
-            else Token.K_STR
+            else to_loop_through_type
         )
 
         if var_type != var_val_type:
