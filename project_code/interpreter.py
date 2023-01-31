@@ -1,4 +1,5 @@
 from .abstract_syntax_tree import AssignStatementNode
+from .error import InterpreterError
 from .tokens import Token
 from .visit_ast_node import ASTNodeVisitor
 from .program_stack import ProgramStack, StackFrame
@@ -21,7 +22,7 @@ class Interpreter(ASTNodeVisitor):
         var_value = curr_stack_frame.get(ast_node.value)
 
         if var_value is None:
-            raise Exception(f"Variable {ast_node.value} is not defined.")
+            self.__error(f"Variable {ast_node.value} is not defined.")
 
         return curr_stack_frame.get(ast_node.value)
 
@@ -219,3 +220,6 @@ class Interpreter(ASTNodeVisitor):
         self.visit(ast_node.statement_list_node)
         print(Interpreter.PROGRAM_STACK)
         Interpreter.PROGRAM_STACK.pop()
+
+    def __error(self, message):
+        raise InterpreterError(message)

@@ -27,11 +27,6 @@ class ScopeSymbolTable:
             "float": BuiltInTypeSymbol(Token.K_FLOAT),
             "bool": BuiltInTypeSymbol(Token.K_BOOL),
             "str": BuiltInTypeSymbol(Token.K_STR),
-            "if": BuiltInTypeSymbol(Token.K_IF),
-            "elseif": BuiltInTypeSymbol(Token.K_ELSEIF),
-            "else": BuiltInTypeSymbol(Token.K_ELSE),
-            "while": BuiltInTypeSymbol(Token.K_WHILE),
-            "for": BuiltInTypeSymbol(Token.K_FOR),
             "range": BuiltInTypeSymbol(Token.K_RANGE),
         }
 
@@ -81,10 +76,10 @@ class VariableSymbol(Symbol):
 
 
 class ConditionalSymbol(Symbol):
-    def __init__(self, name, type_):
-        super().__init__(name=f"{name}_{id(self)}", type_=type_)
+    def __init__(self, name):
+        super().__init__(name=f"{name}_{id(self)}")
 
 
 class LoopSymbol(Symbol):
-    def __init__(self, name, type_):
-        super().__init__(name=f"{name}_{id(self)}", type_=type_)
+    def __init__(self, name):
+        super().__init__(name=f"{name}_{id(self)}")

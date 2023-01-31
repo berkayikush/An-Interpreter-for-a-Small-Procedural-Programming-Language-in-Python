@@ -7,8 +7,12 @@ class Error(Exception):
     INVALID_ASSIGNMENT = "Invalid assignment"
 
     def __init__(self, error_message=None, value=None):
-        self.__error_message = f"{self.__class__.__name__}: {error_message}"
+        self.__message = f"{self.__class__.__name__}: {error_message}"
         self.__value = value
+
+    @property
+    def message(self):
+        return self.__message
 
 
 class LexerError(Error):
@@ -20,4 +24,8 @@ class ParserError(Error):
 
 
 class SemanticAnalysisError(Error):
+    pass
+
+
+class InterpreterError(Error):
     pass

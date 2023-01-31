@@ -319,5 +319,5 @@ class Lexer:
 
     def __error(self):
         raise LexerError(
-            error_message=f"Error occured for {self.__current_char} on line {self.__line}, column {self.__col}"
+            error_message=f'Error occured for "{self.__current_char}" on line {self.__line}, column {self.__col}'
         )

@@ -60,11 +60,10 @@ class Parser:
 
     def __factor(self):
         """
-        factor : (INT | FLOAT | BOOL | STRING)
-                 | BOOL
-                 | LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS
-                 | (PLUS | MINUS) factor
-                 | variable_name
+        factor: (INT | FLOAT | BOOL | STR)
+                | LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS
+                | (PLUS | MINUS) factor
+                | variable_name
         """
         token = self.__current_token
 
@@ -168,9 +167,10 @@ class Parser:
 
     def __assign_statement(self):
         """
-        assign_statement: variable_name (ASSIGN | PLUS_ASSIGN | MINUS_ASSIGN | MULTIPLICATION_ASSIGN | FLOAT_DIVISION_ASSIGN
-                                                | INT_DIVISION_ASSIGN
-                                                | MODULO_ASSIGN) expr
+        assign_statement: variable_name (ASSIGN | PLUS_ASSIGN | MINUS_ASSIGN | MULTIPLICATION_ASSIGN
+                                        | FLOAT_DIVISION_ASSIGN
+                                        | INT_DIVISION_ASSIGN
+                                        | MODULO_ASSIGN) expr
         """
         left_node = self.__variable_name()
         op_token = self.__current_token
@@ -395,8 +395,8 @@ class Parser:
 
     def __statement(self):
         """
-        statement: variable_declaration_statement SEMI_COLON | while_loop_statement | conditional_statement |
-                   assignment_statement SEMI_COLON | empty_statement
+        statement: variable_declaration_statement SEMI_COLON | for_statement | while_loop_statement
+                   | conditional_statement | assignment_statement SEMI_COLON | empty_statement
         """
         if self.__current_token.type_ == Token.K_VAR:
             curr_statement = self.__variable_declaration_statement()

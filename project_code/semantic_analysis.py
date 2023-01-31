@@ -159,15 +159,15 @@ class SemanticAnalyzer(ASTNodeVisitor):
     def __add_conditional_symbols_to_current_scope(self, ast_node, symbol_names):
         for i, (condition, _) in enumerate(ast_node.if_cases):
             self.visit(condition)
-            name, type_ = ("if", Token.K_IF) if i == 0 else ("elseif", Token.K_ELSEIF)
+            name = "if" if i == 0 else "elseif"
 
-            if_elseif_symbol = ConditionalSymbol(name, BuiltInTypeSymbol(type_))
+            if_elseif_symbol = ConditionalSymbol(name)
             symbol_names.append(if_elseif_symbol.name)
 
             self.__current_scope_symbol_table.add_symbol(if_elseif_symbol)
 
         if ast_node.else_case is not None:
-            else_symbol = ConditionalSymbol("else", BuiltInTypeSymbol(Token.K_ELSE))
+            else_symbol = ConditionalSymbol("else")
             symbol_names.append(else_symbol.name)
 
             self.__current_scope_symbol_table.add_symbol(else_symbol)
@@ -209,7 +209,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
                 f"Cannot loop through {to_loop_through_type}",
             )
 
-        for_symbol = LoopSymbol("for", BuiltInTypeSymbol(Token.K_FOR))
+        for_symbol = LoopSymbol("for")
         self.__current_scope_symbol_table.add_symbol(for_symbol)
 
         self.__current_scope_symbol_table = ScopeSymbolTable(
@@ -240,7 +240,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
     def visitWhileStatementNode(self, ast_node):
         self.visit(ast_node.condition)
 
-        while_symbol = LoopSymbol("while", BuiltInTypeSymbol(Token.K_WHILE))
+        while_symbol = LoopSymbol("while")
         self.__current_scope_symbol_table.add_symbol(while_symbol)
 
         self.__current_scope_symbol_table = ScopeSymbolTable(
