@@ -1,4 +1,4 @@
-from .abstract_syntax_tree import AssignStatementNode
+from .abstract_syntax_tree import AssignmentStatementNode
 from .error import InterpreterError
 from .tokens import Token
 from .visit_ast_node import ASTNodeVisitor
@@ -83,7 +83,7 @@ class Interpreter(ASTNodeVisitor):
     def visitEmptyStatementNode(self, ast_node):
         pass
 
-    def visitAssignStatementNode(self, ast_node):
+    def visitAssignmentStatementNode(self, ast_node):
         curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
         curr_stack_frame.set(
             ast_node.left_node.value, value=self.visit(ast_node.right_node)
@@ -157,17 +157,17 @@ class Interpreter(ASTNodeVisitor):
             Interpreter.PROGRAM_STACK.pop()
 
     def visitRangeExprNode(self, ast_node):
-        start = self.visit(ast_node.start_node)
-        end = self.visit(ast_node.end_node)
+        start = self.visit(ast_node.start_val)
+        end = self.visit(ast_node.end_val)
 
         return (
             range(start, end)
-            if ast_node.step_node is None
-            else range(start, end, self.visit(ast_node.step_node))
+            if ast_node.step_val is None
+            else range(start, end, self.visit(ast_node.step_val))
         )
 
     def visitForStatementNode(self, ast_node):
-        to_loop_through = self.visit(ast_node.to_loop_through)
+        iterable = self.visit(ast_node.iterable)
 
         # Create a new stack frame for the for statement here.
         Interpreter.PROGRAM_STACK.push(
@@ -187,7 +187,7 @@ class Interpreter(ASTNodeVisitor):
 
         curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
 
-        for val in to_loop_through:
+        for val in iterable:
             curr_stack_frame.set(var_node.value, value=val)
             print(Interpreter.PROGRAM_STACK)
             self.visit(ast_node.statement_list_node)
@@ -202,12 +202,18 @@ class Interpreter(ASTNodeVisitor):
         curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
 
         for variable in ast_node.variables:
-            if isinstance(variable, AssignStatementNode):
+            if isinstance(variable, AssignmentStatementNode):
                 var_value = self.visit(variable.right_node)
                 curr_stack_frame[variable.left_node.value] = var_value
 
             else:
                 curr_stack_frame[variable.value] = None
+
+    def visitReturnTypeNode(self, ast_node):
+        pass
+
+    def visitFuncDeclStatementNode(self, ast_node):
+        pass
 
     def visitStatementListNode(self, ast_node):
         for statement in ast_node.statements:

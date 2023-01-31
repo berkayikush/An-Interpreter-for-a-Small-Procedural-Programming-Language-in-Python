@@ -13,17 +13,10 @@ from project_code.interpreter import Interpreter
 
 
 def main():
-    text = """    
-    var(int) a = 3;
-    
-    if (a == 1) {
-        
-    } elseif(a == 2) {
-        var(int) a = 1;
-    } elseif(a == 3) {
-        var(int) b = 2;
-    } else {
-        
+    text = """
+    var(int) a = 5;
+    for (var(str) i from range(0, 10)) {
+        var(int) b = 5;
     }
     """
 

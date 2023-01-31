@@ -81,6 +81,8 @@ class Token:
     K_FOR = "K_FOR"
     K_FROM = "K_FROM"
     K_RANGE = "K_RANGE"
+    K_FUNC = "K_FUNC"
+    K_VOID = "K_VOID"
 
     KEYWORDS = {
         "var": K_VAR,
@@ -98,6 +100,8 @@ class Token:
         "for": K_FOR,
         "from": K_FROM,
         "range": K_RANGE,
+        "func": K_FUNC,
+        "void": K_VOID,
     }
 
     ###########

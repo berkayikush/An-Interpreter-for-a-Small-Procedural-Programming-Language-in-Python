@@ -7,13 +7,15 @@ from .abstract_syntax_tree import (
     UnaryOpNode,
     BinaryOpNode,
     EmptyStatementNode,
-    AssignStatementNode,
+    AssignmentStatementNode,
     ConditionalStatementNode,
     WhileStatementNode,
     RangeExprNode,
     ForStatementNode,
     VarTypeNode,
     VarDeclStatementNode,
+    ReturnTypeNode,
+    FuncDeclStatementNode,
     StatementListNode,
     ProgramNode,
 )
@@ -50,9 +52,9 @@ class Parser:
             value=self.__current_token,
         )
 
-    def __variable_name(self):
+    def __var_name(self):
         """
-        variable_name: IDENTIFIER
+        var_name: IDENTIFIER
         """
         token = self.__current_token
         self.__eat(Token.IDENTIFIER)
@@ -63,7 +65,7 @@ class Parser:
         factor: (INT | FLOAT | BOOL | STR)
                 | LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS
                 | (PLUS | MINUS) factor
-                | variable_name
+                | var_name
         """
         token = self.__current_token
 
@@ -90,7 +92,7 @@ class Parser:
             self.__eat(Token.RIGHT_PARENTHESIS)
             return ast_node
 
-        return self.__variable_name()
+        return self.__var_name()
 
     def __binary_op(self, func, operations):
         left_node = func()
@@ -167,12 +169,12 @@ class Parser:
 
     def __assign_statement(self):
         """
-        assign_statement: variable_name (ASSIGN | PLUS_ASSIGN | MINUS_ASSIGN | MULTIPLICATION_ASSIGN
+        assign_statement: var_name (ASSIGN | PLUS_ASSIGN | MINUS_ASSIGN | MULTIPLICATION_ASSIGN
                                         | FLOAT_DIVISION_ASSIGN
                                         | INT_DIVISION_ASSIGN
                                         | MODULO_ASSIGN) expr
         """
-        left_node = self.__variable_name()
+        left_node = self.__var_name()
         op_token = self.__current_token
 
         match (op_token.type_):
@@ -216,7 +218,7 @@ class Parser:
                 self.__eat(Token.ASSIGN)
                 right_node = self.__logical_expr()
 
-        return AssignStatementNode(left_node, op_token, right_node)
+        return AssignmentStatementNode(left_node, op_token, right_node)
 
     def __conditional_statement(self):
         """
@@ -284,22 +286,22 @@ class Parser:
         self.__eat(Token.K_RANGE)
         self.__eat(Token.LEFT_PARENTHESIS)
 
-        start_node = self.__logical_expr()
+        start_val = self.__logical_expr()
         self.__eat(Token.COMMA)
 
-        end_node = self.__logical_expr()
-        step_node = None
+        end_val = self.__logical_expr()
+        step_val = None
 
         if self.__current_token.type_ == Token.COMMA:
             self.__eat(Token.COMMA)
-            step_node = self.__logical_expr()
+            step_val = self.__logical_expr()
 
         self.__eat(Token.RIGHT_PARENTHESIS)
-        return RangeExprNode(start_node, end_node, step_node)
+        return RangeExprNode(start_val, end_val, step_val)
 
     def __for_statement(self):
         """
-        for_statement: K_FOR LEFT_PARENTHESIS K_VAR LEFT_PARENTHESIS variable_type RIGHT_PARENTHESIS variable_name
+        for_statement: K_FOR LEFT_PARENTHESIS K_VAR LEFT_PARENTHESIS var_type RIGHT_PARENTHESIS var_name
                        K_FROM (range_expr | logical_expr) RIGHT_PARENTHESIS
                        LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET
         """
@@ -309,14 +311,14 @@ class Parser:
         self.__eat(Token.K_VAR)
         self.__eat(Token.LEFT_PARENTHESIS)
 
-        type_node = self.__variable_type()
+        type_node = self.__var_type()
         self.__eat(Token.RIGHT_PARENTHESIS)
 
-        var_node = self.__variable_name()
+        var_node = self.__var_name()
         var_decl = VarDeclStatementNode(type_node, [var_node])
         self.__eat(Token.K_FROM)
 
-        to_loop_through = (
+        iterable = (
             self.__range_expr()
             if self.__current_token.type_ == Token.K_RANGE
             else self.__logical_expr()
@@ -327,11 +329,11 @@ class Parser:
         statement_list = self.__statement_list()
         self.__eat(Token.RIGHT_CURLY_BRACKET)
 
-        return ForStatementNode(var_decl, to_loop_through, statement_list)
+        return ForStatementNode(var_decl, iterable, statement_list)
 
-    def __variable_type(self):
+    def __var_type(self):
         """
-        variable_type: K_INT | K_FLOAT | K_BOOL | K_STR
+        var_type: K_INT | K_FLOAT | K_BOOL | K_STR
         """
         token = self.__current_token
 
@@ -352,54 +354,94 @@ class Parser:
                 self.__eat(Token.K_STR)
                 return VarTypeNode(token)
 
-    def __variable_declaration_statement(self):
+    def __var_decl_statement(self):
         """
-        variable_declaration_statement: K_VAR LEFT_PARENTHESIS variable_type RIGHT_PARENTHESIS
-                                        variable_name (ASSIGN expr)? (COMMA variable_name (ASSIGN expr)?)*
+        var_decl_statement: K_VAR LEFT_PARENTHESIS var_type RIGHT_PARENTHESIS
+                                        var_name (ASSIGN expr)? (COMMA var_name (ASSIGN expr)?)*
         """
         self.__eat(Token.K_VAR)
         self.__eat(Token.LEFT_PARENTHESIS)
-        type_node = self.__variable_type()
-        variable_declaration_statement_node = VarDeclStatementNode(type_node, [])
+        type_node = self.__var_type()
+        var_decl_statement_node = VarDeclStatementNode(type_node, [])
         self.__eat(Token.RIGHT_PARENTHESIS)
 
-        variable = self.__variable_name()
+        variable = self.__var_name()
 
         if self.__current_token.type_ == Token.ASSIGN:
             op_token = self.__current_token
             self.__eat(Token.ASSIGN)
 
             right_node = self.__logical_expr()
-            variable_declaration_statement_node.variables.append(
-                AssignStatementNode(variable, op_token, right_node)
+            var_decl_statement_node.variables.append(
+                AssignmentStatementNode(variable, op_token, right_node)
             )
         else:
-            variable_declaration_statement_node.variables.append(variable)
+            var_decl_statement_node.variables.append(variable)
 
         while self.__current_token.type_ == Token.COMMA:
             self.__eat(Token.COMMA)
-            variable = self.__variable_name()
+            variable = self.__var_name()
 
             if self.__current_token.type_ == Token.ASSIGN:
                 op_token = self.__current_token
                 self.__eat(Token.ASSIGN)
 
                 right_node = self.__logical_expr()
-                variable_declaration_statement_node.variables.append(
-                    AssignStatementNode(variable, op_token, right_node)
+                var_decl_statement_node.variables.append(
+                    AssignmentStatementNode(variable, op_token, right_node)
                 )
             else:
-                variable_declaration_statement_node.variables.append(variable)
+                var_decl_statement_node.variables.append(variable)
 
-        return variable_declaration_statement_node
+        return var_decl_statement_node
+
+    def __return_type(self):
+        """
+        return_type: K_INT | K_FLOAT | K_BOOL | K_STR | K_VOID
+        """
+        token = self.__current_token
+
+        if token.type_ == Token.K_VOID:
+            self.__eat(Token.K_VOID)
+            return ReturnTypeNode(token)
+
+        return ReturnTypeNode(self.__var_type().token)
+
+    def __func_decl_statement(self):
+        """
+        func_decl_statement: K_FUNC LEFT_PARENTHESIS return_type RIGHT_PARENTHESIS IDENTIFIER
+                             LEFT_PARENTHESIS (func_parameters)? RIGHT_PARENTHESIS
+                             LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET
+        """
+        self.__eat(Token.K_FUNC)
+        self.__eat(Token.LEFT_PARENTHESIS)
+
+        return_type_node = self.__return_type()
+        self.__eat(Token.RIGHT_PARENTHESIS)
+
+        func_name = self.__current_token
+        self.__eat(Token.IDENTIFIER)
+
+        self.__eat(Token.LEFT_PARENTHESIS)
+        self.__eat(Token.RIGHT_PARENTHESIS)
+
+        self.__eat(Token.LEFT_CURLY_BRACKET)
+        func_body = self.__statement_list()
+        self.__eat(Token.RIGHT_CURLY_BRACKET)
+
+        return FuncDeclStatementNode(return_type_node, func_name, func_body)
 
     def __statement(self):
         """
-        statement: variable_declaration_statement SEMI_COLON | for_statement | while_loop_statement
-                   | conditional_statement | assignment_statement SEMI_COLON | empty_statement
+        statement: func_decl_statement | var_decl_statement SEMI_COLON |
+                   for_statement | while_loop_statement | conditional_statement |
+                   assignment_statement SEMI_COLON | empty_statement
         """
+        if self.__current_token.type_ == Token.K_FUNC:
+            return self.__func_decl_statement()
+
         if self.__current_token.type_ == Token.K_VAR:
-            curr_statement = self.__variable_declaration_statement()
+            curr_statement = self.__var_decl_statement()
             self.__eat(Token.SEMI_COLON)
             return curr_statement
 

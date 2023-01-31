@@ -75,7 +75,7 @@ class EmptyStatementNode(AST):
     pass
 
 
-class AssignStatementNode(AST):
+class AssignmentStatementNode(AST):
     def __init__(self, left_node, op_token, right_node):
         self.__left_node = left_node
         self.__op_token = op_token
@@ -123,28 +123,28 @@ class WhileStatementNode(AST):
 
 
 class RangeExprNode(AST):
-    def __init__(self, start_node, end_node, step_node):
-        self.__start_node = start_node
-        self.__end_node = end_node
-        self.__step_node = step_node
+    def __init__(self, start_val, end_val, step_val):
+        self.__start_val = start_val
+        self.__end_val = end_val
+        self.__step_val = step_val
 
     @property
-    def start_node(self):
-        return self.__start_node
+    def start_val(self):
+        return self.__start_val
 
     @property
-    def end_node(self):
-        return self.__end_node
+    def end_val(self):
+        return self.__end_val
 
     @property
-    def step_node(self):
-        return self.__step_node
+    def step_val(self):
+        return self.__step_val
 
 
 class ForStatementNode(AST):
-    def __init__(self, var_decl_statement_node, to_loop_through, statement_list_node):
+    def __init__(self, var_decl_statement_node, iterable, statement_list_node):
         self.__var_decl_statement_node = var_decl_statement_node
-        self.__to_loop_through = to_loop_through
+        self.__iterable = iterable
         self.__statement_list_node = statement_list_node
 
     @property
@@ -152,8 +152,8 @@ class ForStatementNode(AST):
         return self.__var_decl_statement_node
 
     @property
-    def to_loop_through(self):
-        return self.__to_loop_through
+    def iterable(self):
+        return self.__iterable
 
     @property
     def statement_list_node(self):
@@ -162,7 +162,12 @@ class ForStatementNode(AST):
 
 class VarTypeNode(AST):
     def __init__(self, type_token):
+        self.__token = type_token
         self.__value = type_token.value
+
+    @property
+    def token(self):
+        return self.__token
 
     @property
     def value(self):
@@ -181,6 +186,34 @@ class VarDeclStatementNode(AST):
     @property
     def variables(self):
         return self.__variables
+
+
+class ReturnTypeNode(AST):
+    def __init__(self, return_type_token):
+        self.__value = return_type_token.value
+
+    @property
+    def value(self):
+        return self.__value
+
+
+class FuncDeclStatementNode(AST):
+    def __init__(self, return_type_node, func_name, func_body):
+        self.__return_type_node = return_type_node
+        self.__func_name = func_name
+        self.__func_body = func_body
+
+    @property
+    def return_type_node(self):
+        return self.__return_type_node
+
+    @property
+    def func_name(self):
+        return self.__func_name
+
+    @property
+    def func_body(self):
+        return self.__func_body
 
 
 class StatementListNode(AST):
