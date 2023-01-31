@@ -8,7 +8,7 @@ class VarNode(AST):
         self.__val = var_token.val
 
     @property
-    def token(self):
+    def token(self):  # for reporting errors.
         return self.__token
 
     @property
@@ -22,7 +22,7 @@ class NumberNode(AST):
         self.__val = num_token.val
 
     @property
-    def token(self):
+    def token(self):  # for reporting errors.
         return self.__token
 
     @property
@@ -36,7 +36,7 @@ class BoolNode(AST):
         self.__val = bool_token.val
 
     @property
-    def token(self):
+    def token(self):  # for reporting errors.
         return self.__token
 
     @property
@@ -50,7 +50,7 @@ class StrNode(AST):
         self.__val = str_token.val
 
     @property
-    def token(self):
+    def token(self):  # for reporting errors.
         return self.__token
 
     @property
@@ -72,7 +72,7 @@ class UnaryOpNode(AST):
         return self.__child_node
 
     @property
-    def token(self):
+    def token(self):  # for reporting errors.
         return self.__child_node.token
 
 
@@ -95,7 +95,7 @@ class BinaryOpNode(AST):
         return self.__right_node
 
     @property
-    def token(self):
+    def token(self):  # for reporting errors.
         return self.__left_node.token
 
 
@@ -169,7 +169,7 @@ class RangeExprNode(AST):
         return self.__step_node
 
     @property
-    def token(self):
+    def token(self):  # for reporting errors.
         return self.__start_node.token
 
 

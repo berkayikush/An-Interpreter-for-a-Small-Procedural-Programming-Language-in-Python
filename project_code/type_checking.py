@@ -6,12 +6,10 @@ from .error import SemnaticError
 class TypeChecker:
     @staticmethod
     def check_unary_op(op_token, child_node_type):
-        op_token_type = op_token.type_
-
-        if op_token_type == Token.K_NOT:
+        if op_token.type_ == Token.K_NOT:
             return BuiltInTypeSymbol(Token.K_BOOL)
 
-        if op_token_type in (Token.MINUS, Token.PLUS):
+        if op_token.type_ in (Token.MINUS, Token.PLUS):
             match child_node_type:
                 case Token.K_STR:
                     TypeChecker.__error(
@@ -27,9 +25,7 @@ class TypeChecker:
 
     @staticmethod
     def check_binary_op(op_token, left_node_type, right_node_type):
-        op_token_type = op_token.type_
-
-        if op_token_type in (
+        if op_token.type_ in (
             Token.PLUS,
             Token.MINUS,
             Token.MULTIPLICATION,
@@ -41,10 +37,10 @@ class TypeChecker:
                 op_token, left_node_type, right_node_type
             )
 
-        if op_token_type in (Token.EQUALS, Token.NOT_EQUALS):
+        if op_token.type_ in (Token.EQUALS, Token.NOT_EQUALS):
             return BuiltInTypeSymbol(Token.K_BOOL)
 
-        if op_token_type in (
+        if op_token.type_ in (
             Token.LESS_THAN,
             Token.LESS_THAN_OR_EQUALS,
             Token.GREATER_THAN,
@@ -54,15 +50,14 @@ class TypeChecker:
                 op_token, left_node_type, right_node_type
             )
 
-        if op_token_type == Token.K_AND:
+        if op_token.type_ == Token.K_AND:
             return BuiltInTypeSymbol(right_node_type)
 
-        if op_token_type == Token.K_OR:
+        if op_token.type_ == Token.K_OR:
             return BuiltInTypeSymbol(left_node_type)
 
     @staticmethod
     def check_assignment_statement(var_type, var_val_type, var_val_token):
-
         if var_type != var_val_type:
             TypeChecker.__error(
                 f"Cannot assign {var_val_type} to {var_type}", var_val_token
@@ -90,11 +85,9 @@ class TypeChecker:
 
     @staticmethod
     def __check_arithmetic_op(op_token, left_node_type, right_node_type):
-        op_token_type = op_token.type_
-
         match (left_node_type, right_node_type):
             case (Token.K_STR, Token.K_STR):
-                if op_token_type == Token.PLUS:
+                if op_token.type_ == Token.PLUS:
                     return BuiltInTypeSymbol(Token.K_STR)
 
                 TypeChecker.__error(
@@ -103,7 +96,7 @@ class TypeChecker:
                 )
 
             case (Token.K_STR, _):
-                if op_token_type == Token.MULTIPLICATION:
+                if op_token.type_ == Token.MULTIPLICATION:
                     return BuiltInTypeSymbol(Token.K_STR)
 
                 TypeChecker.__error(
@@ -112,7 +105,7 @@ class TypeChecker:
                 )
 
             case (_, Token.K_STR):
-                if op_token_type == Token.MULTIPLICATION:
+                if op_token.type_ == Token.MULTIPLICATION:
                     return BuiltInTypeSymbol(Token.K_STR)
 
                 TypeChecker.__error(
@@ -121,19 +114,19 @@ class TypeChecker:
                 )
 
             case (Token.K_FLOAT, Token.K_FLOAT):
-                if op_token_type in Token.INT_DIVISION:
+                if op_token.type_ in Token.INT_DIVISION:
                     return BuiltInTypeSymbol(Token.K_INT)
 
                 return BuiltInTypeSymbol(Token.K_FLOAT)
 
             case (Token.K_FLOAT, _):
-                if op_token_type in Token.INT_DIVISION:
+                if op_token.type_ in Token.INT_DIVISION:
                     return BuiltInTypeSymbol(Token.K_INT)
 
                 return BuiltInTypeSymbol(Token.K_FLOAT)
 
             case (_, Token.K_FLOAT):
-                if op_token_type in Token.INT_DIVISION:
+                if op_token.type_ in Token.INT_DIVISION:
                     return BuiltInTypeSymbol(Token.K_INT)
 
                 return BuiltInTypeSymbol(Token.K_FLOAT)

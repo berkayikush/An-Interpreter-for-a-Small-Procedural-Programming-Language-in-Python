@@ -17,8 +17,7 @@ class ParserError(Error):
 
 
 class SemnaticError(Error):
-    INVALID_OPERATION = "Invalid operation"
-    INVALID_ASSIGNMENT = "Invalid assignment"
+    pass
 
 
 class InterpreterError(Error):
