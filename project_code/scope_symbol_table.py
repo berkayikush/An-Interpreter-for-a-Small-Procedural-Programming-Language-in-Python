@@ -83,3 +83,19 @@ class ConditionalSymbol(Symbol):
 class LoopSymbol(Symbol):
     def __init__(self, name):
         super().__init__(name=f"{name}_{id(self)}")
+
+
+class FuncSymbol(Symbol):
+    def __init__(self, name, type_=None, params=None):
+        super().__init__(f"func_{name}", type_)
+        self.__params = params if params is not None else []
+
+    @property
+    def params(self):
+        return self.__params
+
+    def __str__(self):
+        return f"FuncSymbol({self.name}, {self.type_}, {self.params})"
+
+    def __repr__(self):
+        return self.__str__()

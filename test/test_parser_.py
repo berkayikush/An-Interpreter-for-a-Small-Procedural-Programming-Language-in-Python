@@ -42,5 +42,5 @@ class TestParser(unittest.TestCase):
             tree.statement_list_node.statements[0].var_type_node, VarTypeNode
         )
         self.assertEqual(
-            tree.statement_list_node.statements[0].var_type_node.value, "int"
+            tree.statement_list_node.statements[0].var_type_node.val, "int"
         )

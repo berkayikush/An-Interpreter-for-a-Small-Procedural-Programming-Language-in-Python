@@ -60,21 +60,21 @@ class StackFrame:
     def __check_variable(self, variable):
         return variable in self.__variables
 
-    def set(self, key, value):
+    def set(self, key, val):
         if self.__check_variable(key):
-            self.__variables[key] = value
+            self.__variables[key] = val
             return
 
-        self.__outer_scope.set(key, value)
+        self.__outer_scope.set(key, val)
 
-    def __setitem__(self, key, value):
-        self.__variables[key] = value
+    def __setitem__(self, key, val):
+        self.__variables[key] = val
 
     def __str__(self):
         lines = [f"{self.__scope_level} {self.__type_} {self.__name}"]
 
-        for key, value in self.__variables.items():
-            lines.append(f"\t{key:<20} = {value}")
+        for key, val in self.__variables.items():
+            lines.append(f"\t{key:<20} = {val}")
 
         s = "\n".join(lines)
         return s

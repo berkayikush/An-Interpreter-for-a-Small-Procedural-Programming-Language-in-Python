@@ -6,11 +6,7 @@ class Lexer:
     def __init__(self, text):
         self.__text = text
         self.__char_pos = 0
-
-        if len(text) == 0:
-            self.__current_char = None
-        else:
-            self.__current_char = self.__text[self.__char_pos]
+        self.__current_char = self.__text[self.__char_pos]
 
         self.__line = 1
         self.__col = 1
@@ -84,7 +80,7 @@ class Lexer:
 
             self.__error()
 
-        return Token(Token.EOF, None)
+        return Token(Token.EOF, None, self.__line, self.__col)
 
     def __advance(self):
         if self.__current_char == "\n":
@@ -110,96 +106,6 @@ class Lexer:
             return None
 
         return self.__text[next_char_at]
-
-    def __remove_whitespace(self):
-        while self.__current_char is not None and self.__current_char.isspace():
-            self.__advance()
-
-    def __handle_multiline_comment(self):
-        self.__advance()
-        self.__advance()
-
-        while self.__current_char != "*" and self.__check_next_char() != "/":
-            self.__advance()
-
-        self.__advance()
-        self.__advance()
-
-    def __is_assignment_operator(self):
-        return (
-            (self.__is_arithmetic_operator() and self.__check_next_char() == "=")
-            or (self.__current_char == "=")
-            or (
-                self.__current_char == "/"
-                and self.__check_next_char() == "/"
-                and self.__check_next_char(offset=2) == "="
-            )
-        )
-
-    def __is_arithmetic_operator(self):
-        return self.__current_char in ["+", "-", "*", "/", "%"]
-
-    def __is_comparsion_operator(self):
-        return (
-            (self.__current_char == "=" and self.__check_next_char() == "=")
-            or (self.__current_char == "!")
-            or (self.__current_char == "<")
-            or (self.__current_char == ">")
-        )
-
-    def __is_wrapper(self):
-        return self.__current_char in ["{", "}"]
-
-    def __is_parenthesis(self):
-        return self.__current_char in ["(", ")"]
-
-    def __is_bracket(self):
-        return self.__current_char in ["[", "]"]
-
-    def __convert_to_str(self):
-        str_ = ""
-        escape_chars_map = {"n": "\n", "t": "\t", "r": "\r", "0": "\0"}
-        self.__advance()
-
-        while self.__current_char is not None and self.__current_char != '"':
-            if self.__current_char == "\\":
-                self.__advance()
-                str_ += escape_chars_map.get(self.__current_char, self.__current_char)
-            else:
-                str_ += self.__current_char
-
-            self.__advance()
-
-        self.__advance()
-        return str_
-
-    def __convert_to_num(self):
-        num = ""
-
-        while self.__current_char is not None and self.__current_char.isdigit():
-            num += self.__current_char
-            self.__advance()
-
-        if self.__current_char == ".":
-            num += self.__current_char
-            self.__advance()
-
-            while self.__current_char is not None and self.__current_char.isdigit():
-                num += self.__current_char
-                self.__advance()
-
-            return float(num)
-
-        return int(num)
-
-    def __convert_to_id(self):
-        identifier = ""
-
-        while self.__current_char is not None and self.__current_char.isalnum():
-            identifier += self.__current_char
-            self.__advance()
-
-        return identifier
 
     def __convert_to_arithmetic_operator(self):
         operator = self.__current_char
@@ -250,6 +156,17 @@ class Lexer:
 
         return token_type, operator
 
+    def __convert_to_bracket(self):
+        bracket = self.__current_char
+        self.__advance()
+
+        if bracket == "[":
+            token_type = Token.LEFT_SQUARE_BRACKET
+        else:
+            token_type = Token.RIGHT_SQUARE_BRACKET
+
+        return token_type, bracket
+
     def __convert_to_comparsion_operator(self):
         operator = self.__current_char
         self.__advance()
@@ -284,16 +201,33 @@ class Lexer:
 
         return token_type, operator
 
-    def __convert_to_wrapper(self):
-        wrapper = self.__current_char
-        self.__advance()
+    def __convert_to_id(self):
+        identifier = ""
 
-        if wrapper == "{":
-            token_type = Token.LEFT_CURLY_BRACKET
-        else:
-            token_type = Token.RIGHT_CURLY_BRACKET
+        while self.__current_char is not None and self.__current_char.isalnum():
+            identifier += self.__current_char
+            self.__advance()
 
-        return token_type, wrapper
+        return identifier
+
+    def __convert_to_num(self):
+        num = ""
+
+        while self.__current_char is not None and self.__current_char.isdigit():
+            num += self.__current_char
+            self.__advance()
+
+        if self.__current_char == ".":
+            num += self.__current_char
+            self.__advance()
+
+            while self.__current_char is not None and self.__current_char.isdigit():
+                num += self.__current_char
+                self.__advance()
+
+            return float(num)
+
+        return int(num)
 
     def __convert_to_parenthesis(self):
         parenthesis = self.__current_char
@@ -306,18 +240,80 @@ class Lexer:
 
         return token_type, parenthesis
 
-    def __convert_to_bracket(self):
-        bracket = self.__current_char
+    def __convert_to_str(self):
+        str_ = ""
+        escape_chars_map = {"n": "\n", "t": "\t", "r": "\r", "0": "\0"}
         self.__advance()
 
-        if bracket == "[":
-            token_type = Token.LEFT_SQUARE_BRACKET
-        else:
-            token_type = Token.RIGHT_SQUARE_BRACKET
+        while self.__current_char is not None and self.__current_char != '"':
+            if self.__current_char == "\\":
+                self.__advance()
+                str_ += escape_chars_map.get(self.__current_char, self.__current_char)
+            else:
+                str_ += self.__current_char
 
-        return token_type, bracket
+            self.__advance()
+
+        self.__advance()
+        return str_
+
+    def __convert_to_wrapper(self):
+        wrapper = self.__current_char
+        self.__advance()
+
+        if wrapper == "{":
+            token_type = Token.LEFT_CURLY_BRACKET
+        else:
+            token_type = Token.RIGHT_CURLY_BRACKET
+
+        return token_type, wrapper
 
     def __error(self):
         raise LexerError(
             error_message=f'Error occured for "{self.__current_char}" on line {self.__line}, column {self.__col}'
         )
+
+    def __handle_multiline_comment(self):
+        self.__advance()
+        self.__advance()
+
+        while self.__current_char != "*" and self.__check_next_char() != "/":
+            self.__advance()
+
+        self.__advance()
+        self.__advance()
+
+    def __is_arithmetic_operator(self):
+        return self.__current_char in ["+", "-", "*", "/", "%"]
+
+    def __is_assignment_operator(self):
+        return (
+            (self.__is_arithmetic_operator() and self.__check_next_char() == "=")
+            or (self.__current_char == "=")
+            or (
+                self.__current_char == "/"
+                and self.__check_next_char() == "/"
+                and self.__check_next_char(offset=2) == "="
+            )
+        )
+
+    def __is_bracket(self):
+        return self.__current_char in ["[", "]"]
+
+    def __is_comparsion_operator(self):
+        return (
+            (self.__current_char == "=" and self.__check_next_char() == "=")
+            or (self.__current_char == "!")
+            or (self.__current_char == "<")
+            or (self.__current_char == ">")
+        )
+
+    def __is_parenthesis(self):
+        return self.__current_char in ["(", ")"]
+
+    def __is_wrapper(self):
+        return self.__current_char in ["{", "}"]
+
+    def __remove_whitespace(self):
+        while self.__current_char is not None and self.__current_char.isspace():
+            self.__advance()

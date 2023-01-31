@@ -1,14 +1,6 @@
 class Error(Exception):
-    IDENTIFIER_NOT_FOUND = "Identifier not found"
-    IDENTIFIER_ALREADY_DEFINED = "Identifier is already defined"
-
-    UNEXPECTED_TOKEN = "Unexpected token"
-    INVALID_OPERATION = "Invalid operation"
-    INVALID_ASSIGNMENT = "Invalid assignment"
-
-    def __init__(self, error_message=None, value=None):
+    def __init__(self, error_message=None):
         self.__message = f"{self.__class__.__name__}: {error_message}"
-        self.__value = value
 
     @property
     def message(self):
@@ -20,12 +12,15 @@ class LexerError(Error):
 
 
 class ParserError(Error):
-    pass
+    UNEXPECTED_TOKEN = "Unexpected token"
+    NO_SEMICOLON = "No semicolon at the end of statement"
 
 
-class SemanticAnalysisError(Error):
-    pass
+class SemnaticError(Error):
+    INVALID_OPERATION = "Invalid operation"
+    INVALID_ASSIGNMENT = "Invalid assignment"
 
 
 class InterpreterError(Error):
-    pass
+    DIVISION_BY_ZERO = "Division by zero detected"
+    MODULO_BY_ZERO = "Modulo by zero detected"

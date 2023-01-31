@@ -4,38 +4,58 @@ class AST:
 
 class VarNode(AST):
     def __init__(self, var_token):
-        self.__value = var_token.value
+        self.__token = var_token
+        self.__val = var_token.val
 
     @property
-    def value(self):
-        return self.__value
+    def token(self):
+        return self.__token
+
+    @property
+    def val(self):
+        return self.__val
 
 
 class NumberNode(AST):
     def __init__(self, num_token):
-        self.__value = num_token.value
+        self.__token = num_token
+        self.__val = num_token.val
 
     @property
-    def value(self):
-        return self.__value
+    def token(self):
+        return self.__token
+
+    @property
+    def val(self):
+        return self.__val
 
 
 class BoolNode(AST):
     def __init__(self, bool_token):
-        self.__value = bool_token.value
+        self.__token = bool_token
+        self.__val = bool_token.val
 
     @property
-    def value(self):
-        return self.__value
+    def token(self):
+        return self.__token
+
+    @property
+    def val(self):
+        return self.__val
 
 
 class StrNode(AST):
-    def __init__(self, string_token):
-        self.__value = string_token.value
+    def __init__(self, str_token):
+        self.__token = str_token
+        self.__val = str_token.val
 
     @property
-    def value(self):
-        return self.__value
+    def token(self):
+        return self.__token
+
+    @property
+    def val(self):
+        return self.__val
 
 
 class UnaryOpNode(AST):
@@ -50,6 +70,10 @@ class UnaryOpNode(AST):
     @property
     def child_node(self):
         return self.__child_node
+
+    @property
+    def token(self):
+        return self.__child_node.token
 
 
 class BinaryOpNode(AST):
@@ -69,6 +93,10 @@ class BinaryOpNode(AST):
     @property
     def right_node(self):
         return self.__right_node
+
+    @property
+    def token(self):
+        return self.__left_node.token
 
 
 class EmptyStatementNode(AST):
@@ -123,22 +151,26 @@ class WhileStatementNode(AST):
 
 
 class RangeExprNode(AST):
-    def __init__(self, start_val, end_val, step_val):
-        self.__start_val = start_val
-        self.__end_val = end_val
-        self.__step_val = step_val
+    def __init__(self, start_node, end_node, step_node):
+        self.__start_node = start_node
+        self.__end_node = end_node
+        self.__step_node = step_node
 
     @property
-    def start_val(self):
-        return self.__start_val
+    def start_node(self):
+        return self.__start_node
 
     @property
-    def end_val(self):
-        return self.__end_val
+    def end_node(self):
+        return self.__end_node
 
     @property
-    def step_val(self):
-        return self.__step_val
+    def step_node(self):
+        return self.__step_node
+
+    @property
+    def token(self):
+        return self.__start_node.token
 
 
 class ForStatementNode(AST):
@@ -163,15 +195,15 @@ class ForStatementNode(AST):
 class VarTypeNode(AST):
     def __init__(self, type_token):
         self.__token = type_token
-        self.__value = type_token.value
+        self.__val = type_token.val
 
     @property
     def token(self):
         return self.__token
 
     @property
-    def value(self):
-        return self.__value
+    def val(self):
+        return self.__val
 
 
 class VarDeclStatementNode(AST):
@@ -190,30 +222,49 @@ class VarDeclStatementNode(AST):
 
 class ReturnTypeNode(AST):
     def __init__(self, return_type_token):
-        self.__value = return_type_token.value
+        self.__val = return_type_token.val
 
     @property
-    def value(self):
-        return self.__value
+    def val(self):
+        return self.__val
+
+
+class FuncParamNode(AST):
+    def __init__(self, var_type_node, var_node):
+        self.__var_type_node = var_type_node
+        self.__var_node = var_node
+
+    @property
+    def var_type_node(self):
+        return self.__var_type_node
+
+    @property
+    def var_node(self):
+        return self.__var_node
 
 
 class FuncDeclStatementNode(AST):
-    def __init__(self, return_type_node, func_name, func_body):
+    def __init__(self, return_type_node, func_name, func_params, func_body):
         self.__return_type_node = return_type_node
-        self.__func_name = func_name
-        self.__func_body = func_body
+        self.__name = func_name
+        self.__params = func_params
+        self.__body = func_body
 
     @property
     def return_type_node(self):
         return self.__return_type_node
 
     @property
-    def func_name(self):
-        return self.__func_name
+    def name(self):
+        return self.__name
 
     @property
-    def func_body(self):
-        return self.__func_body
+    def params(self):
+        return self.__params
+
+    @property
+    def body(self):
+        return self.__body
 
 
 class StatementListNode(AST):

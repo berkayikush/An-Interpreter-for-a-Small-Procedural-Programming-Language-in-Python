@@ -3,7 +3,7 @@ import sys
 from project_code.error import (
     LexerError,
     ParserError,
-    SemanticAnalysisError,
+    SemnaticError,
     InterpreterError,
 )
 from project_code.lexer import Lexer
@@ -14,10 +14,7 @@ from project_code.interpreter import Interpreter
 
 def main():
     text = """
-    var(int) a = 5;
-    for (var(str) i from range(0, 10)) {
-        var(int) b = 5;
-    }
+    var(int) a = (4 + 5) * 2; /* 18 */
     """
 
     lexer = Lexer(text)
@@ -34,7 +31,7 @@ def main():
 
     try:
         semantic_analyzer.visit(tree)
-    except SemanticAnalysisError as error:
+    except SemnaticError as error:
         print(error.message)
         sys.exit(1)
 
