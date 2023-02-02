@@ -66,43 +66,43 @@ class Token:
     ############
     # KEYWORDS #
     ############
-    K_VAR = "K_VAR"
-    K_INT = "K_INT"
-    K_FLOAT = "K_FLOAT"
-    K_BOOL = "K_BOOL"
-    K_STR = "K_STR"
-    K_AND = "K_AND"
-    K_OR = "K_OR"
-    K_NOT = "K_NOT"
-    K_IF = "K_IF"
-    K_ELSEIF = "K_ELSEIF"
-    K_ELSE = "K_ELSE"
-    K_WHILE = "K_WHILE"
-    K_FOR = "K_FOR"
-    K_FROM = "K_FROM"
-    K_RANGE = "K_RANGE"
-    K_FUNC = "K_FUNC"
-    K_VOID = "K_VOID"
+    K_VAR = "var"
+    K_INT = "int"
+    K_FLOAT = "float"
+    K_BOOL = "bool"
+    K_STR = "str"
+    K_AND = "and"
+    K_OR = "or"
+    K_NOT = "not"
+    K_IF = "if"
+    K_ELSEIF = "elseif"
+    K_ELSE = "else"
+    K_WHILE = "while"
+    K_FOR = "for"
+    K_FROM = "from"
+    K_RANGE = "range"
+    K_FUNC = "func"
+    K_VOID = "void"
 
-    KEYWORDS = {
-        "var": K_VAR,
-        "int": K_INT,
-        "float": K_FLOAT,
-        "bool": K_BOOL,
-        "str": K_STR,
-        "and": K_AND,
-        "or": K_OR,
-        "not": K_NOT,
-        "if": K_IF,
-        "elseif": K_ELSEIF,
-        "else": K_ELSE,
-        "while": K_WHILE,
-        "for": K_FOR,
-        "from": K_FROM,
-        "range": K_RANGE,
-        "func": K_FUNC,
-        "void": K_VOID,
-    }
+    KEYWORDS = (
+        K_VAR,
+        K_INT,
+        K_FLOAT,
+        K_BOOL,
+        K_STR,
+        K_AND,
+        K_OR,
+        K_NOT,
+        K_IF,
+        K_ELSEIF,
+        K_ELSE,
+        K_WHILE,
+        K_FOR,
+        K_FROM,
+        K_RANGE,
+        K_FUNC,
+        K_VOID,
+    )
 
     ###########
     # COMMENT #

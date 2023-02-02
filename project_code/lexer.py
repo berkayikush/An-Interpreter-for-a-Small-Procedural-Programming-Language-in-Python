@@ -29,9 +29,7 @@ class Lexer:
                 identifier = self.__convert_to_id()
 
                 if identifier in Token.KEYWORDS:
-                    return Token(
-                        Token.KEYWORDS[identifier], identifier, self.__line, self.__col
-                    )
+                    return Token(identifier, identifier, self.__line, self.__col)
 
                 if identifier in ["true", "false"]:
                     return Token(Token.BOOL, identifier, self.__line, self.__col)

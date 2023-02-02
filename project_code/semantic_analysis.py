@@ -199,7 +199,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
             self.__curr_scope_symbol_table.add_symbol(variable_symbol)
 
-    def visitFuncDeclStatementNode(self, ast_node):
+    def visitFuncDeclStatementNode(self, ast_node):  # TODO: check assignment statement.
         func_symbol = FuncSymbol(ast_node.name)
         self.__curr_scope_symbol_table.add_symbol(func_symbol)
 

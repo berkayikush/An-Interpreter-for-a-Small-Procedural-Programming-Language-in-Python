@@ -60,7 +60,7 @@ class TypeChecker:
     def check_assignment_statement(var_type, var_val_type, var_val_token):
         if var_type != var_val_type:
             TypeChecker.__error(
-                f"Cannot assign {var_val_type} to {var_type}", var_val_token
+                f'Cannot assign "{var_val_type}" to "{var_type}"', var_val_token
             )
 
     @staticmethod
@@ -81,7 +81,9 @@ class TypeChecker:
     @staticmethod
     def check_iterable(iterable_type, iterable_token):
         if iterable_type not in (Token.K_RANGE, Token.K_STR):
-            TypeChecker.__error(f"Cannot iterate over {iterable_type}", iterable_token)
+            TypeChecker.__error(
+                f'Cannot iterate over "{iterable_type}"', iterable_token
+            )
 
     @staticmethod
     def __check_arithmetic_op(op_token, left_node_type, right_node_type):
