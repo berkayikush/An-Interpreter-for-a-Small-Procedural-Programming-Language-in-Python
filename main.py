@@ -14,7 +14,8 @@ from project_code.interpreter import Interpreter
 
 def main():
     text = """
-    var(str) a = "Hello" + 2;
+    var(str) a = "Hello";
+    var(int) b = 10;
     """
 
     lexer = Lexer(text)

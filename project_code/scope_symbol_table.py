@@ -37,11 +37,19 @@ class ScopeSymbolTable:
         if self.__check_symbol(name):
             return self.__symbols[name]
 
-        if not check_outer_scope:
+        if (not check_outer_scope) and (
+            not (
+                self.__scope_name.startswith("if")
+                or self.__scope_name.startswith("elseif")
+                or self.__scope_name.startswith("else")
+                or self.__scope_name.startswith("while")
+                or self.__scope_name.startswith("for")
+            )
+        ):
             return None
 
         if self.__outer_scope is not None:
-            return self.__outer_scope.get_symbol(name)
+            return self.__outer_scope.get_symbol(name, check_outer_scope)
 
     def __check_symbol(self, name):
         return name in self.__symbols
@@ -66,7 +74,7 @@ class BuiltInTypeSymbol(Symbol):
         super().__init__(name)
 
 
-class VariableSymbol(Symbol):
+class VarSymbol(Symbol):
     """
     Used to make sure that a variable is declared before it is used.
     """
@@ -93,9 +101,3 @@ class FuncSymbol(Symbol):
     @property
     def params(self):
         return self.__params
-
-    def __str__(self):
-        return f"FuncSymbol({self.name}, {self.type_}, {self.params})"
-
-    def __repr__(self):
-        return self.__str__()

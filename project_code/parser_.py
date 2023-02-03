@@ -45,12 +45,12 @@ class Parser:
             self.__current_token = self.__lexer.get_next_token()
             return
 
-        self.__error()
+        self.__error(token_type=token_type)
 
-    def __error(self):
+    def __error(self, token_type=None):
         error_message = (
             f"{ParserError.NO_SEMICOLON}"
-            if self.__current_token.type_ == Token.EOF
+            if token_type == Token.SEMI_COLON
             else f'{ParserError.UNEXPECTED_TOKEN} "{self.__current_token.val}"'
         )
 
@@ -459,7 +459,7 @@ class Parser:
         return_type = self.__return_type()
         self.__eat(Token.RIGHT_PARENTHESIS)
 
-        func_name = self.__current_token
+        func_name = self.__current_token.val
         self.__eat(Token.IDENTIFIER)
 
         self.__eat(Token.LEFT_PARENTHESIS)

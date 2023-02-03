@@ -157,28 +157,28 @@ class Interpreter(ASTNodeVisitor):
             Interpreter.PROGRAM_STACK.pop()
 
     def visitWhileStatementNode(self, ast_node):
+        # Create a new stack frame for the while statement here.
+        Interpreter.PROGRAM_STACK.push(
+            StackFrame(
+                "while statement",
+                StackFrame.WHILE_STATEMENT,
+                scope_level=Interpreter.PROGRAM_STACK.peek().scope_level + 1,
+                outer_scope=Interpreter.PROGRAM_STACK.peek(),
+            )
+        )
+
         while True:
             condition_result = self.visit(ast_node.condition)
 
             if not condition_result:
                 break
 
-            # Create a new stack frame for the while statement here.
-            Interpreter.PROGRAM_STACK.push(
-                StackFrame(
-                    "while statement",
-                    StackFrame.WHILE_STATEMENT,
-                    scope_level=Interpreter.PROGRAM_STACK.peek().scope_level + 1,
-                    outer_scope=Interpreter.PROGRAM_STACK.peek(),
-                )
-            )
-
             print("Entering", "while statement", "scope")
             print(Interpreter.PROGRAM_STACK)
             self.visit(ast_node.statement_list_node)
             print("Exiting", "while statement", "scope")
-            print(Interpreter.PROGRAM_STACK)
-            Interpreter.PROGRAM_STACK.pop()
+
+        Interpreter.PROGRAM_STACK.pop()
 
     def visitRangeExprNode(self, ast_node):
         start = self.visit(ast_node.start_node)
