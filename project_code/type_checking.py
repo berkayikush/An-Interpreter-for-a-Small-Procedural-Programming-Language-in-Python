@@ -64,6 +64,14 @@ class TypeChecker:
             )
 
     @staticmethod
+    def check_func_call_statement(param_type, arg_type, func_call_token):
+        if param_type != arg_type:
+            TypeChecker.__error(
+                f'Cannot pass "{arg_type}" argument to "{param_type}" parameter',
+                func_call_token,
+            )
+
+    @staticmethod
     def check_range_expr(start_type, end_type, step_type, range_token):
         if start_type not in (Token.K_INT, Token.K_BOOL) or end_type not in (
             Token.K_INT,

@@ -18,7 +18,8 @@ program: statement_list
 
 statement_list: statement_list: statement statement_list | empty_statement
 statement: func_decl_statement | var_decl_statement SEMI_COLON | for_statement | 
-           while_loop_statement | conditional_statement | assignment_statement SEMI_COLON | empty_statement
+           while_loop_statement | conditional_statement | func_call_statement SEMI_COLON | 
+           assignment_statement SEMI_COLON | empty_statement
 
 func_decl_statement: K_FUNC LEFT_PARENTHESIS return_type RIGHT_PARENTHESIS IDENTIFIER
                             LEFT_PARENTHESIS (func_params)? RIGHT_PARENTHESIS
@@ -42,7 +43,9 @@ while_statement: K_WHILE LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS
 conditional_statement: K_IF LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET 
                        (K_ELIF LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET)*
                        (K_ELSE LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET)?
-              
+
+func_call_statement: IDENTIFIER LEFT_PARENTHESIS (logical_expr (COMMA logical_expr)*)? RIGHT_PARENTHESIS
+
 assignment_statement: var_name (ASSIGN | PLUS_ASSIGN | MINUS_ASSIGN | MULTIPLICATION_ASSIGN | 
                                 FLOAT_DIVISION_ASSIGN | INT_DIVISION_ASSIGN | MODULO_ASSIGN) logical_expr
 

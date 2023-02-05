@@ -1,5 +1,5 @@
 from .tokens import Token
-from .abstract_syntax_tree import VarNode
+from .abstract_syntax_tree import AssignmentStatementNode, VarNode
 from .visit_ast_node import ASTNodeVisitor
 from .scope_symbol_table import (
     ScopeSymbolTable,
@@ -64,6 +64,41 @@ class SemanticAnalyzer(ASTNodeVisitor):
             var_val_token=ast_node.right_node.token,
         )
 
+    def visitFuncCallStatementNode(self, ast_node):
+        func_symbol = self.__curr_scope_symbol_table.get_symbol(
+            f"func_{ast_node.func_name}"
+        )
+
+        if func_symbol is None:
+            self.__error(f'Function "{ast_node.func_name}" not found', ast_node.token)
+
+        num_args = len(ast_node.args)
+        num_params = len(func_symbol.params)
+
+        num_default_params = len(
+            [
+                filter(
+                    lambda param: isinstance(param, AssignmentStatementNode),
+                    func_symbol.params,
+                )
+            ]
+        )
+        num_non_default_params = num_params - num_default_params
+
+        if num_args not in (num_non_default_params, num_params):
+            self.__error(
+                f'Function "{ast_node.func_name}" takes from {num_default_params} '
+                f"to {num_params} positional arguments but {num_args} were given",
+                ast_node.token,
+            )
+
+        for i, arg in enumerate(ast_node.args):
+            TypeChecker.check_func_call_statement(
+                param_type=func_symbol.params[i].type_.name,
+                arg_type=self.visit(arg).name,
+                func_call_token=arg.token,
+            )
+
     def visitConditionalStatementNode(self, ast_node):
         symbol_names = []
         self.__add_conditional_symbols_to_current_scope(ast_node, symbol_names)
@@ -76,7 +111,6 @@ class SemanticAnalyzer(ASTNodeVisitor):
             )
 
             self.visit(statement_list_node)
-
             self.__curr_scope_symbol_table = self.__curr_scope_symbol_table.outer_scope
 
         if ast_node.else_case is not None:
@@ -87,7 +121,6 @@ class SemanticAnalyzer(ASTNodeVisitor):
             )
 
             self.visit(ast_node.else_case)
-
             self.__curr_scope_symbol_table = self.__curr_scope_symbol_table.outer_scope
 
     def __add_conditional_symbols_to_current_scope(self, ast_node, symbol_names):
@@ -200,6 +233,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
             scope_level=self.__curr_scope_symbol_table.scope_level + 1,
             outer_scope=self.__curr_scope_symbol_table,
         )
+        prev_param = None
 
         for param in ast_node.params:
             param_type_symbol = self.__curr_scope_symbol_table.get_symbol(
@@ -207,6 +241,12 @@ class SemanticAnalyzer(ASTNodeVisitor):
             )
 
             if isinstance(param.var_node, VarNode):
+                if isinstance(prev_param, AssignmentStatementNode):
+                    self.__error(
+                        "Non-default argument follows default argument",
+                        param.var_node.token,
+                    )
+
                 param_name = param.var_node.val
             else:
                 TypeChecker.check_assignment_statement(
@@ -220,6 +260,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
             self.__curr_scope_symbol_table.add_symbol(param_symbol)
 
             func_symbol.params.append(param_symbol)
+            prev_param = param.var_node
 
         self.visit(ast_node.body)
         self.__curr_scope_symbol_table = self.__curr_scope_symbol_table.outer_scope

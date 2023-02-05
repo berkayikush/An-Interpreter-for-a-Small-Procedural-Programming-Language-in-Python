@@ -113,6 +113,9 @@ class Interpreter(ASTNodeVisitor):
             ast_node.left_node.val, val=self.visit(ast_node.right_node)
         )
 
+    def visitFuncCallStatementNode(self, ast_node):
+        pass
+
     def visitConditionalStatementNode(self, ast_node):
         for i, (condition, statement) in enumerate(ast_node.if_cases):
             condition_result = self.visit(condition)

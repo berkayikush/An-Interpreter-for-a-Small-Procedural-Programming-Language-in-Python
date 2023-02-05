@@ -8,6 +8,7 @@ from .abstract_syntax_tree import (
     BinaryOpNode,
     EmptyStatementNode,
     AssignmentStatementNode,
+    FuncCallStatementNode,
     ConditionalStatementNode,
     WhileStatementNode,
     RangeExprNode,
@@ -26,12 +27,12 @@ from .error import ParserError
 class Parser:
     def __init__(self, lexer):
         self.__lexer = lexer
-        self.__current_token = self.__lexer.get_next_token()
+        self.__curr_token = self.__lexer.get_next_token()
 
     def parse(self):
         ast_node = self.__program()
 
-        if self.__current_token.type_ != Token.EOF:
+        if self.__curr_token.type_ != Token.EOF:
             self.__error()
 
         return ast_node
@@ -41,8 +42,8 @@ class Parser:
         Verify that the current token matches the passed token type.
         If it does, then "eat" the current token and assign the next.
         """
-        if self.__current_token.type_ == token_type:
-            self.__current_token = self.__lexer.get_next_token()
+        if self.__curr_token.type_ == token_type:
+            self.__curr_token = self.__lexer.get_next_token()
             return
 
         self.__error(token_type=token_type)
@@ -51,19 +52,19 @@ class Parser:
         error_message = (
             f"{ParserError.NO_SEMICOLON}"
             if token_type == Token.SEMI_COLON
-            else f'{ParserError.UNEXPECTED_TOKEN} "{self.__current_token.val}"'
+            else f'{ParserError.UNEXPECTED_TOKEN} "{self.__curr_token.val}"'
         )
 
         raise ParserError(
             error_message
-            + f" on line: {self.__current_token.line}, column: {self.__current_token.col}",
+            + f" on line: {self.__curr_token.line}, column: {self.__curr_token.col}",
         )
 
     def __var_name(self):
         """
         var_name: IDENTIFIER
         """
-        token = self.__current_token
+        token = self.__curr_token
         self.__eat(Token.IDENTIFIER)
         return VarNode(var_token=token)
 
@@ -74,7 +75,7 @@ class Parser:
                 | (PLUS | MINUS) factor
                 | var_name
         """
-        token = self.__current_token
+        token = self.__curr_token
 
         if token.type_ in (Token.INT, Token.FLOAT):
             self.__eat(token.type_)
@@ -104,8 +105,8 @@ class Parser:
     def __binary_op(self, func, operations):
         left_node = func()
 
-        while self.__current_token.type_ in operations:
-            op_token = self.__current_token
+        while self.__curr_token.type_ in operations:
+            op_token = self.__curr_token
             self.__eat(op_token.type_)
 
             left_node = BinaryOpNode(left_node, op_token, right_node=func())
@@ -140,8 +141,8 @@ class Parser:
                                                   | GREATER_THAN
                                                   | GREATER_THAN_OR_EQUALS) arithmetic_expr)*
         """
-        if self.__current_token.type_ == Token.K_NOT:
-            op_token = self.__current_token
+        if self.__curr_token.type_ == Token.K_NOT:
+            op_token = self.__curr_token
             self.__eat(Token.K_NOT)
 
             return UnaryOpNode(op_token, self.__comparison_expr())
@@ -180,7 +181,7 @@ class Parser:
                                     | FLOAT_DIVISION_ASSIGN | INT_DIVISION_ASSIGN | MODULO_ASSIGN) expr
         """
         left_node = self.__var_name()
-        op_token = self.__current_token
+        op_token = self.__curr_token
 
         match (op_token.type_):
             case Token.PLUS_ASSIGN:
@@ -225,6 +226,29 @@ class Parser:
 
         return AssignmentStatementNode(left_node, op_token, right_node)
 
+    def __func_call_statement(self):
+        """
+        func_call_statement: IDENTIFIER LEFT_PARENTHESIS (logical_expr (COMMA logical_expr)*)? RIGHT_PARENTHESIS
+        """
+        func_token = self.__curr_token
+        func_name = self.__curr_token.val
+
+        self.__eat(Token.IDENTIFIER)
+        self.__eat(Token.LEFT_PARENTHESIS)
+
+        args = []
+
+        if self.__curr_token.type_ != Token.RIGHT_PARENTHESIS:
+            args.append(self.__logical_expr())
+
+            while self.__curr_token.type_ == Token.COMMA:
+                self.__eat(Token.COMMA)
+                args.append(self.__logical_expr())
+
+        self.__eat(Token.RIGHT_PARENTHESIS)
+
+        return FuncCallStatementNode(func_name, args, func_token)
+
     def __conditional_statement(self):
         """
         conditional_statement: K_IF LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET
@@ -244,7 +268,7 @@ class Parser:
         if_cases.append((condition_node, self.__statement_list()))
         self.__eat(Token.RIGHT_CURLY_BRACKET)
 
-        while self.__current_token.type_ == Token.K_ELSEIF:
+        while self.__curr_token.type_ == Token.K_ELSEIF:
             self.__eat(Token.K_ELSEIF)
             self.__eat(Token.LEFT_PARENTHESIS)
 
@@ -255,7 +279,7 @@ class Parser:
             if_cases.append((condition_node, self.__statement_list()))
             self.__eat(Token.RIGHT_CURLY_BRACKET)
 
-        if self.__current_token.type_ == Token.K_ELSE:
+        if self.__curr_token.type_ == Token.K_ELSE:
             self.__eat(Token.K_ELSE)
 
             self.__eat(Token.LEFT_CURLY_BRACKET)
@@ -297,7 +321,7 @@ class Parser:
         end_node = self.__logical_expr()
         step_node = None
 
-        if self.__current_token.type_ == Token.COMMA:
+        if self.__curr_token.type_ == Token.COMMA:
             self.__eat(Token.COMMA)
             step_node = self.__logical_expr()
 
@@ -325,7 +349,7 @@ class Parser:
 
         iterable = (
             self.__range_expr()
-            if self.__current_token.type_ == Token.K_RANGE
+            if self.__curr_token.type_ == Token.K_RANGE
             else self.__logical_expr()
         )
         self.__eat(Token.RIGHT_PARENTHESIS)
@@ -340,7 +364,7 @@ class Parser:
         """
         var_type: K_INT | K_FLOAT | K_BOOL | K_STR
         """
-        token = self.__current_token
+        token = self.__curr_token
 
         match token.type_:
             case Token.K_INT:
@@ -372,8 +396,8 @@ class Parser:
 
         variable = self.__var_name()
 
-        if self.__current_token.type_ == Token.ASSIGN:
-            op_token = self.__current_token
+        if self.__curr_token.type_ == Token.ASSIGN:
+            op_token = self.__curr_token
             self.__eat(Token.ASSIGN)
 
             right_node = self.__logical_expr()
@@ -383,12 +407,12 @@ class Parser:
         else:
             var_decl_statement_node.variables.append(variable)
 
-        while self.__current_token.type_ == Token.COMMA:
+        while self.__curr_token.type_ == Token.COMMA:
             self.__eat(Token.COMMA)
             variable = self.__var_name()
 
-            if self.__current_token.type_ == Token.ASSIGN:
-                op_token = self.__current_token
+            if self.__curr_token.type_ == Token.ASSIGN:
+                op_token = self.__curr_token
                 self.__eat(Token.ASSIGN)
 
                 right_node = self.__logical_expr()
@@ -404,7 +428,7 @@ class Parser:
         """
         return_type: K_INT | K_FLOAT | K_BOOL | K_STR | K_VOID
         """
-        token = self.__current_token
+        token = self.__curr_token
 
         if token.type_ == Token.K_VOID:
             self.__eat(Token.K_VOID)
@@ -424,8 +448,8 @@ class Parser:
 
         var_node = self.__var_name()
 
-        if self.__current_token.type_ == Token.ASSIGN:
-            op_token = self.__current_token
+        if self.__curr_token.type_ == Token.ASSIGN:
+            op_token = self.__curr_token
             self.__eat(Token.ASSIGN)
 
             right_node = self.__logical_expr()
@@ -441,7 +465,7 @@ class Parser:
         """
         func_params = [self.__func_param()]
 
-        while self.__current_token.type_ == Token.COMMA:
+        while self.__curr_token.type_ == Token.COMMA:
             self.__eat(Token.COMMA)
             func_params.append(self.__func_param())
 
@@ -459,13 +483,13 @@ class Parser:
         return_type = self.__return_type()
         self.__eat(Token.RIGHT_PARENTHESIS)
 
-        func_name = self.__current_token.val
+        func_name = self.__curr_token.val
         self.__eat(Token.IDENTIFIER)
 
         self.__eat(Token.LEFT_PARENTHESIS)
         func_params = (
             self.__func_params()
-            if self.__current_token.type_ != Token.RIGHT_PARENTHESIS
+            if self.__curr_token.type_ != Token.RIGHT_PARENTHESIS
             else []
         )
         self.__eat(Token.RIGHT_PARENTHESIS)
@@ -482,26 +506,34 @@ class Parser:
         """
         statement: func_decl_statement | var_decl_statement SEMI_COLON |
                    for_statement | while_loop_statement | conditional_statement |
-                   assignment_statement SEMI_COLON | empty_statement
+                   func_call_statement SEMI_COLON | assignment_statement SEMI_COLON | empty_statement
         """
-        if self.__current_token.type_ == Token.K_FUNC:
+        if self.__curr_token.type_ == Token.K_FUNC:
             return self.__func_decl_statement()
 
-        if self.__current_token.type_ == Token.K_VAR:
+        if self.__curr_token.type_ == Token.K_VAR:
             curr_statement = self.__var_decl_statement()
             self.__eat(Token.SEMI_COLON)
             return curr_statement
 
-        if self.__current_token.type_ == Token.K_FOR:
+        if self.__curr_token.type_ == Token.K_FOR:
             return self.__for_statement()
 
-        if self.__current_token.type_ == Token.K_WHILE:
+        if self.__curr_token.type_ == Token.K_WHILE:
             return self.__while_statement()
 
-        if self.__current_token.type_ == Token.K_IF:
+        if self.__curr_token.type_ == Token.K_IF:
             return self.__conditional_statement()
 
-        if self.__current_token.type_ == Token.IDENTIFIER:
+        if (
+            self.__curr_token.type_ == Token.IDENTIFIER
+            and self.__lexer.curr_char == "("
+        ):
+            curr_statement = self.__func_call_statement()
+            self.__eat(Token.SEMI_COLON)
+            return curr_statement
+
+        if self.__curr_token.type_ == Token.IDENTIFIER:
             curr_statement = self.__assign_statement()
             self.__eat(Token.SEMI_COLON)
             return curr_statement

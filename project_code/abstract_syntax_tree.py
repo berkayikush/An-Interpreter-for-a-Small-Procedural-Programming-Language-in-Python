@@ -122,6 +122,25 @@ class AssignmentStatementNode(AST):
         return self.__right_node
 
 
+class FuncCallStatementNode(AST):
+    def __init__(self, func_name, args, func_token):
+        self.__func_name = func_name
+        self.__args = args
+        self.__func_token = func_token
+
+    @property
+    def func_name(self):
+        return self.__func_name
+
+    @property
+    def args(self):
+        return self.__args
+
+    @property
+    def token(self):
+        return self.__func_token
+
+
 class ConditionalStatementNode(AST):
     def __init__(self, if_cases, else_case):
         self.__if_cases = if_cases

@@ -99,5 +99,9 @@ class FuncSymbol(Symbol):
         self.__params = params if params is not None else []
 
     @property
+    def name(self):
+        return self._name
+
+    @property
     def params(self):
         return self.__params
