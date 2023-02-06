@@ -4,23 +4,33 @@ from .error import SemnaticError
 
 
 class TypeChecker:
+    """
+    Used the type rules from the programming language Java.
+    """
+
     @staticmethod
     def check_unary_op(op_token, child_node_type):
         if op_token.type_ == Token.K_NOT:
+            if child_node_type != Token.K_BOOL:
+                TypeChecker.__error(
+                    f'Operation "{op_token.val}" is not allowed on type "{child_node_type}"',
+                    op_token,
+                )
+
             return BuiltInTypeSymbol(Token.K_BOOL)
 
-        if op_token.type_ in (Token.MINUS, Token.PLUS):
+        if op_token.type_ in (Token.K_NOT, Token.MINUS, Token.PLUS):
             match child_node_type:
-                case Token.K_STR:
+                case Token.K_STR | Token.K_BOOL:
                     TypeChecker.__error(
-                        f'Operation "{op_token.val}" is not allowed on type "str"',
+                        f'Operation "{op_token.val}" is not allowed on type "{child_node_type}"',
                         op_token,
                     )
 
                 case Token.K_FLOAT:
                     return BuiltInTypeSymbol(Token.K_FLOAT)
 
-                case _:  # Token.K_INT, Token.K_BOOL
+                case Token.K_INT:
                     return BuiltInTypeSymbol(Token.K_INT)
 
     @staticmethod
@@ -38,6 +48,12 @@ class TypeChecker:
             )
 
         if op_token.type_ in (Token.EQUALS, Token.NOT_EQUALS):
+            if left_node_type != right_node_type:
+                TypeChecker.__error(
+                    f'Cannot compare "{left_node_type}" and "{right_node_type}"',
+                    op_token,
+                )
+
             return BuiltInTypeSymbol(Token.K_BOOL)
 
         if op_token.type_ in (
@@ -50,11 +66,14 @@ class TypeChecker:
                 op_token, left_node_type, right_node_type
             )
 
-        if op_token.type_ == Token.K_AND:
-            return BuiltInTypeSymbol(right_node_type)
+        if op_token.type_ in (Token.K_AND, Token.K_OR):
+            if Token.K_BOOL not in (left_node_type, right_node_type):
+                TypeChecker.__error(
+                    f'Operation "{op_token.val}" is not allowed between "{left_node_type}" and "{right_node_type}"',
+                    op_token,
+                )
 
-        if op_token.type_ == Token.K_OR:
-            return BuiltInTypeSymbol(left_node_type)
+            return BuiltInTypeSymbol(Token.K_BOOL)
 
     @staticmethod
     def check_assignment_statement(var_type, var_val_type, var_val_token):
@@ -64,25 +83,19 @@ class TypeChecker:
             )
 
     @staticmethod
-    def check_func_call_statement(param_type, arg_type, func_call_token):
-        if param_type != arg_type:
+    def check_condition(condition_type, condition_token):
+        if condition_type != Token.K_BOOL:
             TypeChecker.__error(
-                f'Cannot pass "{arg_type}" argument to "{param_type}" parameter',
-                func_call_token,
+                f'Condition must be "bool", not "{condition_type}"', condition_token
             )
 
     @staticmethod
     def check_range_expr(start_type, end_type, step_type, range_token):
-        if start_type not in (Token.K_INT, Token.K_BOOL) or end_type not in (
-            Token.K_INT,
-            Token.K_BOOL,
-        ):
-            TypeChecker.__error(
-                'Start and end of range must be "int" or "bool"', range_token
-            )
+        if (start_type != Token.K_INT) or (end_type != Token.K_INT):
+            TypeChecker.__error('Start and end of range must be "int"', range_token)
 
-        if step_type is not None and step_type not in (Token.K_INT, Token.K_BOOL):
-            TypeChecker.__error('Step of range must be "int" or "bool"', range_token)
+        if step_type is not None and step_type != Token.K_INT:
+            TypeChecker.__error('Step of range must be "int"', range_token)
 
         return BuiltInTypeSymbol(Token.K_RANGE)
 
@@ -96,46 +109,28 @@ class TypeChecker:
     @staticmethod
     def __check_arithmetic_op(op_token, left_node_type, right_node_type):
         match (left_node_type, right_node_type):
-            case (Token.K_STR, Token.K_STR):
+            case (Token.K_STR, _) | (_, Token.K_STR):
                 if op_token.type_ == Token.PLUS:
                     return BuiltInTypeSymbol(Token.K_STR)
 
-                TypeChecker.__error(
-                    f'Operation "{op_token.val}" is not allowed between "str" and "str"',
-                    op_token,
-                )
-
-            case (Token.K_STR, _):
-                if op_token.type_ == Token.MULTIPLICATION:
+                if op_token.type_ in Token.MULTIPLICATION and Token.K_INT in (
+                    left_node_type,
+                    right_node_type,
+                ):
                     return BuiltInTypeSymbol(Token.K_STR)
 
                 TypeChecker.__error(
-                    f'Operation "{op_token.val}" is not allowed between "str" and "{right_node_type}"',
+                    f'Operation "{op_token.val}" is not allowed between "{left_node_type}" and "{right_node_type}"',
                     op_token,
                 )
 
-            case (_, Token.K_STR):
-                if op_token.type_ == Token.MULTIPLICATION:
-                    return BuiltInTypeSymbol(Token.K_STR)
-
+            case (Token.K_BOOL, _) | (_, Token.K_BOOL):
                 TypeChecker.__error(
-                    f'Operation "{op_token.val}" is not allowed between "{left_node_type}" and "str"',
+                    f'Operation "{op_token.val}" is not allowed between "{left_node_type}" and "{right_node_type}"',
                     op_token,
                 )
 
-            case (Token.K_FLOAT, Token.K_FLOAT):
-                if op_token.type_ in Token.INT_DIVISION:
-                    return BuiltInTypeSymbol(Token.K_INT)
-
-                return BuiltInTypeSymbol(Token.K_FLOAT)
-
-            case (Token.K_FLOAT, _):
-                if op_token.type_ in Token.INT_DIVISION:
-                    return BuiltInTypeSymbol(Token.K_INT)
-
-                return BuiltInTypeSymbol(Token.K_FLOAT)
-
-            case (_, Token.K_FLOAT):
+            case (Token.K_FLOAT, _) | (_, Token.K_FLOAT):
                 if op_token.type_ in Token.INT_DIVISION:
                     return BuiltInTypeSymbol(Token.K_INT)
 
@@ -150,15 +145,12 @@ class TypeChecker:
             case (Token.K_STR, Token.K_STR):
                 return BuiltInTypeSymbol(Token.K_BOOL)
 
-            case (Token.K_STR, _):
+            case (Token.K_STR, _) | (_, Token.K_STR) | (Token.K_BOOL, _) | (
+                _,
+                Token.K_BOOL,
+            ):
                 TypeChecker.__error(
-                    f'Operation "{op_token.val}" is not allowed between "str" and "{right_node_type}"',
-                    op_token,
-                )
-
-            case (_, Token.K_STR):
-                TypeChecker.__error(
-                    f'Operation "{op_token.val}" is not allowed between "{left_node_type}" and "str"',
+                    f'Operation "{op_token.val}" is not allowed between "{left_node_type}" and "{right_node_type}"',
                     op_token,
                 )
 

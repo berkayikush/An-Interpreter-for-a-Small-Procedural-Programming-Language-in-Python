@@ -75,28 +75,21 @@ class SemanticAnalyzer(ASTNodeVisitor):
         num_args = len(ast_node.args)
         num_params = len(func_symbol.params)
 
-        num_default_params = len(
-            [
-                filter(
-                    lambda param: isinstance(param, AssignmentStatementNode),
-                    func_symbol.params,
-                )
-            ]
-        )
+        num_default_params = func_symbol.num_default_params
         num_non_default_params = num_params - num_default_params
 
-        if num_args not in (num_non_default_params, num_params):
+        if (num_args < num_non_default_params) or (num_args > num_params):
             self.__error(
-                f'Function "{ast_node.func_name}" takes from {num_default_params} '
+                f'Function "{ast_node.func_name}" takes from {num_non_default_params} '
                 f"to {num_params} positional arguments but {num_args} were given",
                 ast_node.token,
             )
 
         for i, arg in enumerate(ast_node.args):
-            TypeChecker.check_func_call_statement(
-                param_type=func_symbol.params[i].type_.name,
-                arg_type=self.visit(arg).name,
-                func_call_token=arg.token,
+            TypeChecker.check_assignment_statement(
+                func_symbol.params[i].type_.name,
+                self.visit(arg).name,
+                arg.token,
             )
 
     def visitConditionalStatementNode(self, ast_node):
@@ -125,7 +118,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
     def __add_conditional_symbols_to_current_scope(self, ast_node, symbol_names):
         for i, (condition, _) in enumerate(ast_node.if_cases):
-            self.visit(condition)
+            TypeChecker.check_condition(self.visit(condition).name, condition.token)
             name = "if" if i == 0 else "elseif"
 
             if_elseif_symbol = ConditionalSymbol(name)
@@ -140,7 +133,9 @@ class SemanticAnalyzer(ASTNodeVisitor):
             self.__curr_scope_symbol_table.add_symbol(else_symbol)
 
     def visitWhileStatementNode(self, ast_node):
-        self.visit(ast_node.condition)
+        TypeChecker.check_condition(
+            self.visit(ast_node.condition).name, ast_node.condition.token
+        )
 
         while_symbol = LoopSymbol("while")
         self.__curr_scope_symbol_table.add_symbol(while_symbol)
@@ -255,6 +250,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
                     var_val_token=param.var_node.right_node.token,
                 )
                 param_name = param.var_node.left_node.val
+                func_symbol.add_default_param()
 
             param_symbol = VarSymbol(param_name, param_type_symbol)
             self.__curr_scope_symbol_table.add_symbol(param_symbol)

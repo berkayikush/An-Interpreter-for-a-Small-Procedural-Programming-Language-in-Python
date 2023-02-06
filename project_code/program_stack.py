@@ -31,6 +31,7 @@ class StackFrame:
     CONDITIONAL_STATEMENT = "CONDITIONAL_STATEMENT"
     WHILE_STATEMENT = "WHILE_STATEMENT"
     FOR_STATEMENT = "FOR_STATEMENT"
+    FUNC = "FUNC"
 
     def __init__(self, name, type_, scope_level, outer_scope=None):
         self.__name = name

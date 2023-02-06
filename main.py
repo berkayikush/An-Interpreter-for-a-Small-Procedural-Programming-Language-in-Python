@@ -14,13 +14,7 @@ from project_code.interpreter import Interpreter
 
 def main():
     text = """
-    var(str) a = "Hello";
-    
-    func(void) b(var(int) a, var(int) b, var(int) c = 2) {
-        
-    }
-    
-    b(1, 2, "Hello");
+    var(str) a = 5 + "5";
     """
 
     lexer = Lexer(text)

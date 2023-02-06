@@ -188,6 +188,7 @@ class Lexer:
                 if self.__curr_char == "=":
                     operator += self.__curr_char
                     self.__advance()
+
                     token_type = Token.LESS_THAN_OR_EQUALS
                 else:
                     token_type = Token.LESS_THAN

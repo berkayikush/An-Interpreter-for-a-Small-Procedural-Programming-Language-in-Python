@@ -1,4 +1,6 @@
-from .abstract_syntax_tree import AssignmentStatementNode
+import copy
+
+from .abstract_syntax_tree import AssignmentStatementNode, VarNode
 from .error import InterpreterError
 from .tokens import Token
 from .visit_ast_node import ASTNodeVisitor
@@ -11,6 +13,7 @@ class Interpreter(ASTNodeVisitor):
     def __init__(self, ast):
         self.__ast = ast
         self.__zero_token = None  # Used for reporting errors.
+        self.__funcs = {}
 
     def interpret(self):
         if self.__ast is None:
@@ -59,6 +62,12 @@ class Interpreter(ASTNodeVisitor):
     def visitBinaryOpNode(self, ast_node):
         match (ast_node.op_token.type_):
             case Token.PLUS:
+                left_node_val = self.visit(ast_node.left_node)
+                right_node_val = self.visit(ast_node.right_node)
+
+                if isinstance(left_node_val, str) or isinstance(right_node_val, str):
+                    return str(left_node_val) + str(right_node_val)
+
                 return self.visit(ast_node.left_node) + self.visit(ast_node.right_node)
             case Token.MINUS:
                 return self.visit(ast_node.left_node) - self.visit(ast_node.right_node)
@@ -114,7 +123,25 @@ class Interpreter(ASTNodeVisitor):
         )
 
     def visitFuncCallStatementNode(self, ast_node):
-        pass
+        func_name = ast_node.func_name
+        func_args = ast_node.args
+
+        func_frame = copy.deepcopy(self.__funcs[func_name]["stack frame"])
+        func_param_names = self.__funcs[func_name]["param names"]
+        func_body = self.__funcs[func_name]["body"]
+
+        for i, arg in enumerate(func_args):
+            func_frame[func_param_names[i]] = self.visit(arg)
+
+        Interpreter.PROGRAM_STACK.push(func_frame)
+
+        print(f"Entering function {ast_node.func_name} scope")
+        print(Interpreter.PROGRAM_STACK)
+        self.visit(func_body)
+        print(f"Exiting function {ast_node.func_name} scope")
+        print(Interpreter.PROGRAM_STACK)
+
+        Interpreter.PROGRAM_STACK.pop()
 
     def visitConditionalStatementNode(self, ast_node):
         for i, (condition, statement) in enumerate(ast_node.if_cases):
@@ -240,7 +267,33 @@ class Interpreter(ASTNodeVisitor):
         pass
 
     def visitFuncDeclStatementNode(self, ast_node):
-        pass
+        func_name = ast_node.name
+        func_frame = StackFrame(
+            name=func_name,
+            type_=StackFrame.FUNC,
+            scope_level=Interpreter.PROGRAM_STACK.peek().scope_level + 1,
+            outer_scope=Interpreter.PROGRAM_STACK.peek(),
+        )
+
+        param_names = []
+
+        for param in ast_node.params:
+            if isinstance(param.var_node, VarNode):
+                param_name = param.var_node.val
+                func_frame[param_name] = None
+            else:
+                param_name = param.var_node.left_node.val
+                param_val = self.visit(param.var_node.right_node)
+
+                func_frame[param_name] = param_val
+
+            param_names.append(param_name)
+
+        self.__funcs[func_name] = {
+            "stack frame": func_frame,
+            "param names": param_names,
+            "body": ast_node.body,
+        }
 
     def visitStatementListNode(self, ast_node):
         for statement in ast_node.statements:

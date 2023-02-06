@@ -97,6 +97,7 @@ class FuncSymbol(Symbol):
     def __init__(self, name, type_=None, params=None):
         super().__init__(f"func_{name}", type_)
         self.__params = params if params is not None else []
+        self.__num_default_params = 0  # Used to check if params number is correct.
 
     @property
     def name(self):
@@ -105,3 +106,10 @@ class FuncSymbol(Symbol):
     @property
     def params(self):
         return self.__params
+
+    @property
+    def num_default_params(self):
+        return self.__num_default_params
+
+    def add_default_param(self):
+        self.__num_default_params += 1
