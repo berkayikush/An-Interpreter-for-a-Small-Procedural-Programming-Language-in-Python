@@ -1,6 +1,7 @@
 from .tokens import Token
 from .abstract_syntax_tree import (
     VarNode,
+    AccessNode,
     NumberNode,
     BoolNode,
     StrNode,
@@ -66,16 +67,45 @@ class Parser:
         """
         token = self.__curr_token
         self.__eat(Token.IDENTIFIER)
+
         return VarNode(var_token=token)
+
+    def __accessor(self):
+        """
+        accessor: (STR | var_name) LEFT_SQUARE_BRACKET logical_expr (COLON logical_expr)? RIGHT_SQUARE_BRACKET
+        """
+        accessor_token = self.__curr_token
+
+        if accessor_token.type_ == Token.STR:
+            self.__eat(Token.STR)
+            accessor_node = StrNode(str_token=accessor_token)
+        else:
+            accessor_node = self.__var_name()
+
+        self.__eat(Token.LEFT_SQUARE_BRACKET)
+        start_index = self.__logical_expr()
+
+        if self.__curr_token.type_ == Token.COLON:
+            self.__eat(Token.COLON)
+            end_index = self.__logical_expr()
+        else:
+            end_index = None
+
+        self.__eat(Token.RIGHT_SQUARE_BRACKET)
+        return AccessNode(accessor_node, start_index, end_index)
 
     def __factor(self):
         """
         factor: (INT | FLOAT | BOOL | STR)
                 | LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS
                 | (PLUS | MINUS) factor
+                | accessor
                 | var_name
         """
         token = self.__curr_token
+
+        if self.__lexer.check_curr_char() == "[":
+            return self.__accessor()
 
         if token.type_ in (Token.INT, Token.FLOAT):
             self.__eat(token.type_)

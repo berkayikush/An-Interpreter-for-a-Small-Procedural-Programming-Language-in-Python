@@ -64,6 +64,10 @@ class Lexer:
                 self.__advance()
                 return Token(Token.SEMI_COLON, ";", self.__line, self.__col)
 
+            if self.__curr_char == ":":
+                self.__advance()
+                return Token(Token.COLON, ":", self.__line, self.__col)
+
             if self.__curr_char == ",":
                 self.__advance()
                 return Token(Token.COMMA, ",", self.__line, self.__col)
@@ -108,6 +112,9 @@ class Lexer:
             return None
 
         return self.__text[next_char_at]
+
+    def check_curr_char(self):
+        return self.__curr_char
 
     def __convert_to_arithmetic_operator(self):
         operator = self.__curr_char

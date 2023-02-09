@@ -35,6 +35,28 @@ class Interpreter(ASTNodeVisitor):
 
         return curr_stack_frame.get(ast_node.val)
 
+    def visitAccessNode(self, ast_node):
+        """
+        Followed the Python slicing rules.
+        """
+        accessor = self.visit(ast_node.accessor_node)
+        accessor_len = len(accessor)
+
+        start_index = self.visit(ast_node.start_index_node)
+        end_index = (
+            None
+            if ast_node.end_index_node is None
+            else self.visit(ast_node.end_index_node)
+        )
+
+        if abs(start_index) >= accessor_len:
+            self.__error(
+                f'Index out of range: "[{start_index}{":"+str(end_index) if end_index is not None else ""}]"',
+                ast_node.token,
+            )
+
+        return accessor[start_index:end_index]
+
     def visitNumberNode(self, ast_node):
         if ast_node.val == 0:
             self.__zero_token = ast_node.token

@@ -29,6 +29,21 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
         return variable_symbol.type_
 
+    def visitAccessNode(self, ast_node):
+        accessor_type = self.visit(ast_node.accessor_node).name
+        TypeChecker.check_accessor(accessor_type, ast_node.accessor_node.token)
+
+        start_index_type = self.visit(ast_node.start_index_node).name
+        TypeChecker.check_index(start_index_type, ast_node.start_index_node.token)
+
+        end_index = ast_node.end_index_node
+
+        if end_index is not None:
+            end_index_type = self.visit(end_index).name
+            TypeChecker.check_index(end_index_type, end_index.token)
+
+        return BuiltInTypeSymbol(Token.K_STR)
+
     def visitNumberNode(self, ast_node):
         if isinstance(ast_node.val, int):
             return BuiltInTypeSymbol(Token.K_INT)

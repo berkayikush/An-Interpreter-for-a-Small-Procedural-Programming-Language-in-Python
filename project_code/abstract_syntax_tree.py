@@ -16,6 +16,29 @@ class VarNode(AST):
         return self.__val
 
 
+class AccessNode(AST):
+    def __init__(self, accessor_node, start_index_node, end_index_node=None):
+        self.__accessor_node = accessor_node
+        self.__start_index_node = start_index_node
+        self.__end_index_node = end_index_node
+
+    @property
+    def accessor_node(self):
+        return self.__accessor_node
+
+    @property
+    def start_index_node(self):
+        return self.__start_index_node
+
+    @property
+    def end_index_node(self):
+        return self.__end_index_node
+
+    @property
+    def token(self):  # for reporting errors.
+        return self.__accessor_node.token
+
+
 class NumberNode(AST):
     def __init__(self, num_token):
         self.__token = num_token

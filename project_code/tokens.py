@@ -4,6 +4,7 @@ class Token:
     # and can be followed by any number of additional letters and numbers.
 
     SEMI_COLON = "SEMI_COLON"  # ";"
+    COLON = "COLON"  # ":"
     COMMA = "COMMA"  # ","
 
     ##############

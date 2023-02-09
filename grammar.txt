@@ -41,7 +41,7 @@ while_statement: K_WHILE LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS
                  LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET
 
 conditional_statement: K_IF LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET 
-                       (K_ELIF LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET)*
+                       (K_ELSEIF LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET)*
                        (K_ELSE LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET)?
 
 func_call_statement: IDENTIFIER LEFT_PARENTHESIS (logical_expr (COMMA logical_expr)*)? RIGHT_PARENTHESIS
@@ -63,7 +63,9 @@ term: factor((MULTIPLICATION | INT_DIVISION | FLOAT_DIVISION | MODULO) factor)*
 
 factor: (INT | FLOAT | BOOL | STR) 
         | LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS 
-        | (PLUS | MINUS) factor 
+        | (PLUS | MINUS) factor
+        | accessor
         | var_name
 
+accessor: (STR | var_name) LEFT_SQUARE_BRACKET logical_expr (COLON logical_expr)? RIGHT_SQUARE_BRACKET
 var_name: IDENTIFIER

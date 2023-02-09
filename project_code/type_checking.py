@@ -9,6 +9,22 @@ class TypeChecker:
     """
 
     @staticmethod
+    def check_accessor(accessor_type, accessor_token):
+        if accessor_type != Token.K_STR:
+            TypeChecker.__error(
+                f'Type "{accessor_type}" cannot be an accessor',
+                accessor_token,
+            )
+
+    @staticmethod
+    def check_index(index_type, index_token):
+        if index_type != Token.K_INT:
+            TypeChecker.__error(
+                f'Index of type "{index_type}" is not allowed',
+                index_token,
+            )
+
+    @staticmethod
     def check_unary_op(op_token, child_node_type):
         if op_token.type_ == Token.K_NOT:
             if child_node_type != Token.K_BOOL:
