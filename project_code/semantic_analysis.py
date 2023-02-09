@@ -95,8 +95,8 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
         if (num_args < num_non_default_params) or (num_args > num_params):
             self.__error(
-                f'Function "{ast_node.func_name}" takes from {num_non_default_params} '
-                f"to {num_params} positional arguments but {num_args} were given",
+                f'Function "{ast_node.func_name}" takes {num_non_default_params}'
+                f'{"" if num_params == 0 else " to "+str(num_params)} positional arguments but {num_args} were given',
                 ast_node.token,
             )
 
