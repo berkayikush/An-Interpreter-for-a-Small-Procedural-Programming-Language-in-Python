@@ -574,15 +574,15 @@ class Parser:
         """
         statement_list: statement statement_list | empty_statement
         """
-        statment_list_node = StatementListNode()
+        statement_list_node = StatementListNode()
         curr_statement = self.__statement()
-        statment_list_node.statements.append(curr_statement)
+        statement_list_node.statements.append(curr_statement)
 
         while not isinstance(curr_statement, EmptyStatementNode):
             curr_statement = self.__statement()
-            statment_list_node.statements.append(curr_statement)
+            statement_list_node.statements.append(curr_statement)
 
-        return statment_list_node
+        return statement_list_node
 
     def __program(self):
         """
