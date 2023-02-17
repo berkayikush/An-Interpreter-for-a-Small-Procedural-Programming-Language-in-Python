@@ -1,4 +1,4 @@
-import sys
+import sys, os
 
 from project_code.error import (
     LexerError,
@@ -13,22 +13,30 @@ from project_code.interpreter import Interpreter
 
 
 def main():
-    text = """
-    var(int) result = 0;
-    
-    for(var(int) n from 0.5 to 10) {
-        result += n;
-    }
-    
-    var(int) i = result;
-    """
+    if len(sys.argv) < 2:
+        print("Usage: python main.py <filename>.co")
+        sys.exit(1)
+
+    filename = sys.argv[1]
+
+    if os.path.splitext(filename)[1] != ".co":
+        print("Error: File must be a .co file.")
+        sys.exit(1)
+
+    text = ""
+
+    try:
+        with open(filename, "r", encoding="utf-8") as f:
+            text = f.read()
+    except IOError:
+        print(f"Error: File '{filename}' not found or could not be opened.")
+        sys.exit(1)
 
     lexer = Lexer(text)
 
     try:
         parser = Parser(lexer)
         tree = parser.parse()
-
     except (LexerError, ParserError) as error:
         print(error.message)
         sys.exit(1)
