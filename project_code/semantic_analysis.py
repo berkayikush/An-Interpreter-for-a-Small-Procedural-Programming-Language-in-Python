@@ -1,5 +1,7 @@
+import copy
+
 from .tokens import Token
-from .abstract_syntax_tree import AssignmentStatementNode, VarNode
+from .abstract_syntax_tree import VarNode, AssignmentStatementNode
 from .visit_ast_node import ASTNodeVisitor
 from .scope_symbol_table import (
     ScopeSymbolTable,
@@ -10,7 +12,7 @@ from .scope_symbol_table import (
     FuncSymbol,
 )
 from .type_checking import TypeChecker
-from .error import SemnaticError
+from .error import SemanticError
 
 
 class SemanticAnalyzer(ASTNodeVisitor):
@@ -20,6 +22,9 @@ class SemanticAnalyzer(ASTNodeVisitor):
         )
         self.__curr_scope_symbol_table.add_built_in_symbols()
 
+        self.__return_flag = False
+        self.is_func_call_statement = False
+
     def visitVarNode(self, ast_node):
         var_name = ast_node.val
         variable_symbol = self.__curr_scope_symbol_table.get_symbol(var_name)
@@ -28,6 +33,43 @@ class SemanticAnalyzer(ASTNodeVisitor):
             self.__error(f'Identifier "{var_name}" not found', ast_node.token)
 
         return variable_symbol.type_
+
+    def visitFuncCallNode(self, ast_node):
+        func_symbol = self.__curr_scope_symbol_table.get_symbol(
+            f"func_{ast_node.func_name}"
+        )
+
+        if func_symbol is None:
+            self.__error(f'Function "{ast_node.func_name}" not found', ast_node.token)
+
+        num_args = len(ast_node.args)
+        num_params = len(func_symbol.params)
+
+        num_default_params = func_symbol.num_default_params
+        num_non_default_params = num_params - num_default_params
+
+        if (num_args < num_non_default_params) or (num_args > num_params):
+            self.__error(
+                f'Function "{ast_node.func_name}" takes {num_non_default_params}'
+                f'{"" if num_params in (0, num_non_default_params) else " to "+str(num_params)} '
+                f"positional arguments but {num_args} were given",
+                ast_node.token,
+            )
+
+        for i, arg in enumerate(ast_node.args):
+            TypeChecker.check_assignment_statement(
+                func_symbol.params[i].type_.name,
+                self.visit(arg).name,
+                arg.token,
+            )
+
+        if func_symbol.type_ is None and not ast_node.is_statement:
+            self.__error(
+                f'Function "{ast_node.func_name}" does not return a value',
+                ast_node.token,
+            )
+
+        return func_symbol.type_
 
     def visitAccessNode(self, ast_node):
         accessor_type = self.visit(ast_node.accessor_node).name
@@ -78,34 +120,6 @@ class SemanticAnalyzer(ASTNodeVisitor):
             var_val_type=self.visit(ast_node.right_node).name,
             var_val_token=ast_node.right_node.token,
         )
-
-    def visitFuncCallStatementNode(self, ast_node):
-        func_symbol = self.__curr_scope_symbol_table.get_symbol(
-            f"func_{ast_node.func_name}"
-        )
-
-        if func_symbol is None:
-            self.__error(f'Function "{ast_node.func_name}" not found', ast_node.token)
-
-        num_args = len(ast_node.args)
-        num_params = len(func_symbol.params)
-
-        num_default_params = func_symbol.num_default_params
-        num_non_default_params = num_params - num_default_params
-
-        if (num_args < num_non_default_params) or (num_args > num_params):
-            self.__error(
-                f'Function "{ast_node.func_name}" takes {num_non_default_params}'
-                f'{"" if num_params == 0 else " to "+str(num_params)} positional arguments but {num_args} were given',
-                ast_node.token,
-            )
-
-        for i, arg in enumerate(ast_node.args):
-            TypeChecker.check_assignment_statement(
-                func_symbol.params[i].type_.name,
-                self.visit(arg).name,
-                arg.token,
-            )
 
     def visitConditionalStatementNode(self, ast_node):
         symbol_names = []
@@ -234,10 +248,34 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
             self.__curr_scope_symbol_table.add_symbol(variable_symbol)
 
-    def visitFuncDeclStatementNode(self, ast_node):
-        func_symbol = FuncSymbol(ast_node.name)
-        self.__curr_scope_symbol_table.add_symbol(func_symbol)
+    def visitReturnStatementNode(self, ast_node):
+        return_type = self.visit(ast_node.expr_node) if ast_node.expr_node else None
+        curr_scope_symbol_table_cpy = copy.copy(self.__curr_scope_symbol_table)
 
+        while curr_scope_symbol_table_cpy.scope_name != "global":
+            if curr_scope_symbol_table_cpy.scope_name.startswith("func"):
+                func_symbol = curr_scope_symbol_table_cpy.outer_scope.get_symbol(
+                    curr_scope_symbol_table_cpy.scope_name, check_outer_scope=False
+                )
+
+                TypeChecker.check_return_statement(
+                    func_symbol, return_type, ast_node.token
+                )
+
+                self.__return_flag = True
+                return
+
+            curr_scope_symbol_table_cpy = curr_scope_symbol_table_cpy.outer_scope
+
+        self.__error("Return statement outside function", ast_node.token)
+
+    def visitFuncDeclStatementNode(self, ast_node):
+        return_type_symbol = self.__curr_scope_symbol_table.get_symbol(
+            ast_node.return_type_node.val
+        )
+        func_symbol = FuncSymbol(ast_node.name, return_type_symbol)
+
+        self.__curr_scope_symbol_table.add_symbol(func_symbol)
         self.__curr_scope_symbol_table = ScopeSymbolTable(
             scope_name=func_symbol.name,
             scope_level=self.__curr_scope_symbol_table.scope_level + 1,
@@ -274,6 +312,15 @@ class SemanticAnalyzer(ASTNodeVisitor):
             prev_param = param.var_node
 
         self.visit(ast_node.body)
+
+        if return_type_symbol is not None and not self.__return_flag:
+            self.__error(
+                f'Missing return statement for the function "{ast_node.name}"',
+                ast_node.token,
+            )
+        else:
+            self.__return_flag = False
+
         self.__curr_scope_symbol_table = self.__curr_scope_symbol_table.outer_scope
 
     def visitStatementListNode(self, ast_node):
@@ -285,6 +332,6 @@ class SemanticAnalyzer(ASTNodeVisitor):
         self.__curr_scope_symbol_table = self.__curr_scope_symbol_table.outer_scope
 
     def __error(self, error_message, token):
-        raise SemnaticError(
+        raise SemanticError(
             error_message + f" on line: {token.line}, column: {token.col}",
         )

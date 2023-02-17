@@ -122,7 +122,7 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(token.val, ",")
 
         token = lexer.get_next_token()
-        self.assertEqual(token.type_, Token.SEMI_COLON)
+        self.assertEqual(token.type_, Token.SEMICOLON)
         self.assertEqual(token.val, ";")
 
         token = lexer.get_next_token()

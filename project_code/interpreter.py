@@ -1,6 +1,6 @@
 import copy
 
-from .abstract_syntax_tree import AssignmentStatementNode, VarNode
+from .abstract_syntax_tree import VarNode, AssignmentStatementNode
 from .error import InterpreterError
 from .tokens import Token
 from .visit_ast_node import ASTNodeVisitor
@@ -14,6 +14,9 @@ class Interpreter(ASTNodeVisitor):
         self.__ast = ast
         self.__zero_token = None  # Used for reporting errors.
         self.__funcs = {}
+
+        self.__return_flag = False
+        self.__return_val = None
 
     def interpret(self):
         if self.__ast is None:
@@ -34,6 +37,34 @@ class Interpreter(ASTNodeVisitor):
             )
 
         return curr_stack_frame.get(ast_node.val)
+
+    def visitFuncCallNode(self, ast_node):
+        func_name = ast_node.func_name
+        func_args = ast_node.args
+
+        func_frame = copy.deepcopy(self.__funcs[func_name]["stack frame"])
+        func_param_names = self.__funcs[func_name]["param names"]
+        func_body = self.__funcs[func_name]["body"]
+
+        for i, arg in enumerate(func_args):
+            func_frame[func_param_names[i]] = self.visit(arg)
+
+        Interpreter.PROGRAM_STACK.push(func_frame)
+
+        print(f"Entering function {ast_node.func_name} scope")
+        print(Interpreter.PROGRAM_STACK)
+        self.visit(func_body)
+        print(f"Exiting function {ast_node.func_name} scope")
+        print(Interpreter.PROGRAM_STACK)
+
+        Interpreter.PROGRAM_STACK.pop()
+
+        if self.__return_flag:
+            self.__return_flag = False
+            return_val = self.__return_val
+
+            self.__return_val = None
+            return return_val
 
     def visitAccessNode(self, ast_node):
         """
@@ -143,27 +174,6 @@ class Interpreter(ASTNodeVisitor):
         curr_stack_frame.set(
             ast_node.left_node.val, val=self.visit(ast_node.right_node)
         )
-
-    def visitFuncCallStatementNode(self, ast_node):
-        func_name = ast_node.func_name
-        func_args = ast_node.args
-
-        func_frame = copy.deepcopy(self.__funcs[func_name]["stack frame"])
-        func_param_names = self.__funcs[func_name]["param names"]
-        func_body = self.__funcs[func_name]["body"]
-
-        for i, arg in enumerate(func_args):
-            func_frame[func_param_names[i]] = self.visit(arg)
-
-        Interpreter.PROGRAM_STACK.push(func_frame)
-
-        print(f"Entering function {ast_node.func_name} scope")
-        print(Interpreter.PROGRAM_STACK)
-        self.visit(func_body)
-        print(f"Exiting function {ast_node.func_name} scope")
-        print(Interpreter.PROGRAM_STACK)
-
-        Interpreter.PROGRAM_STACK.pop()
 
     def visitConditionalStatementNode(self, ast_node):
         for i, (condition, statement) in enumerate(ast_node.if_cases):
@@ -288,6 +298,10 @@ class Interpreter(ASTNodeVisitor):
     def visitReturnTypeNode(self, ast_node):
         pass
 
+    def visitReturnStatementNode(self, ast_node):
+        self.__return_val = self.visit(ast_node.expr_node)
+        self.__return_flag = True
+
     def visitFuncDeclStatementNode(self, ast_node):
         func_name = ast_node.name
         func_frame = StackFrame(
@@ -320,6 +334,9 @@ class Interpreter(ASTNodeVisitor):
     def visitStatementListNode(self, ast_node):
         for statement in ast_node.statements:
             self.visit(statement)
+
+            if self.__return_flag:
+                break
 
     def visitProgramNode(self, ast_node):
         Interpreter.PROGRAM_STACK.push(

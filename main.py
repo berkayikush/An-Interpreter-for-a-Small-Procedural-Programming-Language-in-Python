@@ -3,7 +3,7 @@ import sys
 from project_code.error import (
     LexerError,
     ParserError,
-    SemnaticError,
+    SemanticError,
     InterpreterError,
 )
 from project_code.lexer import Lexer
@@ -14,13 +14,21 @@ from project_code.interpreter import Interpreter
 
 def main():
     text = """
-    func(void) main(var(int) h=1) {
-        var(int) a = 1, b = 2, c = 3;
-        a += b + c;
+    func(int) fibonacci(var(int) n) {
+        if (n == 0) {
+            return 0;
+        }
+        
+        elseif (n == 1) {
+            return 1;
+        }
+        
+        else {
+            return fibonacci(n - 1) + fibonacci(n - 2);
+        }
     }
     
-    var(int) a = 1, b = 2, c = 3;
-    main(b, c);
+    var(int) result = fibonacci(7);
     """
 
     lexer = Lexer(text)
@@ -37,7 +45,7 @@ def main():
 
     try:
         semantic_analyzer.visit(tree)
-    except SemnaticError as error:
+    except SemanticError as error:
         print(error.message)
         sys.exit(1)
 

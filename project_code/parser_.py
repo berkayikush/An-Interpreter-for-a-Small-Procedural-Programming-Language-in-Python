@@ -9,7 +9,7 @@ from .abstract_syntax_tree import (
     BinaryOpNode,
     EmptyStatementNode,
     AssignmentStatementNode,
-    FuncCallStatementNode,
+    FuncCallNode,
     ConditionalStatementNode,
     WhileStatementNode,
     RangeExprNode,
@@ -17,6 +17,7 @@ from .abstract_syntax_tree import (
     VarTypeNode,
     VarDeclStatementNode,
     ReturnTypeNode,
+    ReturnStatementNode,
     FuncParamNode,
     FuncDeclStatementNode,
     StatementListNode,
@@ -52,7 +53,7 @@ class Parser:
     def __error(self, token_type=None):
         error_message = (
             f"{ParserError.NO_SEMICOLON}"
-            if token_type == Token.SEMI_COLON
+            if token_type == Token.SEMICOLON
             else f'{ParserError.UNEXPECTED_TOKEN} "{self.__curr_token.val}"'
         )
 
@@ -69,6 +70,29 @@ class Parser:
         self.__eat(Token.IDENTIFIER)
 
         return VarNode(var_token=token)
+
+    def __func_call(self, is_statement=False):
+        """
+        func_call: IDENTIFIER LEFT_PARENTHESIS (logical_expr (COMMA logical_expr)*)? RIGHT_PARENTHESIS
+        """
+        func_token = self.__curr_token
+        func_name = self.__curr_token.val
+
+        self.__eat(Token.IDENTIFIER)
+        self.__eat(Token.LEFT_PARENTHESIS)
+
+        args = []
+
+        if self.__curr_token.type_ != Token.RIGHT_PARENTHESIS:
+            args.append(self.__logical_expr())
+
+            while self.__curr_token.type_ == Token.COMMA:
+                self.__eat(Token.COMMA)
+                args.append(self.__logical_expr())
+
+        self.__eat(Token.RIGHT_PARENTHESIS)
+
+        return FuncCallNode(func_name, args, func_token, is_statement)
 
     def __accessor(self):
         """
@@ -100,6 +124,7 @@ class Parser:
                 | LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS
                 | (PLUS | MINUS) factor
                 | accessor
+                | func_call
                 | var_name
         """
         token = self.__curr_token
@@ -129,6 +154,12 @@ class Parser:
 
             self.__eat(Token.RIGHT_PARENTHESIS)
             return ast_node
+
+        if (
+            self.__curr_token.type_ == Token.IDENTIFIER
+            and self.__lexer.curr_char == "("
+        ):
+            return self.__func_call()
 
         return self.__var_name()
 
@@ -255,29 +286,6 @@ class Parser:
                 right_node = self.__logical_expr()
 
         return AssignmentStatementNode(left_node, op_token, right_node)
-
-    def __func_call_statement(self):
-        """
-        func_call_statement: IDENTIFIER LEFT_PARENTHESIS (logical_expr (COMMA logical_expr)*)? RIGHT_PARENTHESIS
-        """
-        func_token = self.__curr_token
-        func_name = self.__curr_token.val
-
-        self.__eat(Token.IDENTIFIER)
-        self.__eat(Token.LEFT_PARENTHESIS)
-
-        args = []
-
-        if self.__curr_token.type_ != Token.RIGHT_PARENTHESIS:
-            args.append(self.__logical_expr())
-
-            while self.__curr_token.type_ == Token.COMMA:
-                self.__eat(Token.COMMA)
-                args.append(self.__logical_expr())
-
-        self.__eat(Token.RIGHT_PARENTHESIS)
-
-        return FuncCallStatementNode(func_name, args, func_token)
 
     def __conditional_statement(self):
         """
@@ -466,6 +474,18 @@ class Parser:
 
         return ReturnTypeNode(self.__var_type().token)
 
+    def __return_statement(self):
+        """
+        return_statement: K_RETURN (logical_expr)?
+        """
+        return_token = self.__curr_token
+        self.__eat(Token.K_RETURN)
+
+        if self.__curr_token.type_ != Token.SEMICOLON:
+            return ReturnStatementNode(return_token, self.__logical_expr())
+
+        return ReturnStatementNode(return_token)
+
     def __func_param(self):
         """
         func_param = K_VAR LEFT_PARENTHESIS var_type RIGHT_PARENTHESIS var_name (ASSIGN expr)?
@@ -513,7 +533,7 @@ class Parser:
         return_type = self.__return_type()
         self.__eat(Token.RIGHT_PARENTHESIS)
 
-        func_name = self.__curr_token.val
+        func_token = self.__curr_token
         self.__eat(Token.IDENTIFIER)
 
         self.__eat(Token.LEFT_PARENTHESIS)
@@ -529,21 +549,26 @@ class Parser:
         self.__eat(Token.RIGHT_CURLY_BRACKET)
 
         return FuncDeclStatementNode(
-            return_type, func_name, func_params, statement_list
+            return_type, func_token, func_params, statement_list
         )
 
     def __statement(self):
         """
-        statement: func_decl_statement | var_decl_statement SEMI_COLON |
-                   for_statement | while_loop_statement | conditional_statement |
-                   func_call_statement SEMI_COLON | assignment_statement SEMI_COLON | empty_statement
+        statement: func_decl_statement | return_statement SEMICOLON | var_decl_statement SEMICOLON | for_statement |
+                   while_loop_statement | conditional_statement | func_call SEMICOLON |
+                   assignment_statement SEMICOLON | empty_statement
         """
         if self.__curr_token.type_ == Token.K_FUNC:
             return self.__func_decl_statement()
 
+        if self.__curr_token.type_ == Token.K_RETURN:
+            curr_statement = self.__return_statement()
+            self.__eat(Token.SEMICOLON)
+            return curr_statement
+
         if self.__curr_token.type_ == Token.K_VAR:
             curr_statement = self.__var_decl_statement()
-            self.__eat(Token.SEMI_COLON)
+            self.__eat(Token.SEMICOLON)
             return curr_statement
 
         if self.__curr_token.type_ == Token.K_FOR:
@@ -559,13 +584,13 @@ class Parser:
             self.__curr_token.type_ == Token.IDENTIFIER
             and self.__lexer.curr_char == "("
         ):
-            curr_statement = self.__func_call_statement()
-            self.__eat(Token.SEMI_COLON)
+            curr_statement = self.__func_call(is_statement=True)
+            self.__eat(Token.SEMICOLON)
             return curr_statement
 
         if self.__curr_token.type_ == Token.IDENTIFIER:
             curr_statement = self.__assign_statement()
-            self.__eat(Token.SEMI_COLON)
+            self.__eat(Token.SEMICOLON)
             return curr_statement
 
         return self.__empty_statement()

@@ -62,7 +62,7 @@ class Lexer:
 
             if self.__curr_char == ";":
                 self.__advance()
-                return Token(Token.SEMI_COLON, ";", self.__line, self.__col)
+                return Token(Token.SEMICOLON, ";", self.__line, self.__col)
 
             if self.__curr_char == ":":
                 self.__advance()

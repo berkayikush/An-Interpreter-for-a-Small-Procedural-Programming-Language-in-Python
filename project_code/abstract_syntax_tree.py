@@ -16,6 +16,31 @@ class VarNode(AST):
         return self.__val
 
 
+class FuncCallNode(AST):
+    def __init__(self, func_name, args, func_token, is_statement=None):
+        self.__func_name = func_name
+        self.__func_token = func_token
+
+        self.__args = args
+        self.__is_statement = is_statement
+
+    @property
+    def func_name(self):
+        return self.__func_name
+
+    @property
+    def args(self):
+        return self.__args
+
+    @property
+    def is_statement(self):
+        return self.__is_statement
+
+    @property
+    def token(self):
+        return self.__func_token
+
+
 class AccessNode(AST):
     def __init__(self, accessor_node, start_index_node, end_index_node=None):
         self.__accessor_node = accessor_node
@@ -145,25 +170,6 @@ class AssignmentStatementNode(AST):
         return self.__right_node
 
 
-class FuncCallStatementNode(AST):
-    def __init__(self, func_name, args, func_token):
-        self.__func_name = func_name
-        self.__args = args
-        self.__func_token = func_token
-
-    @property
-    def func_name(self):
-        return self.__func_name
-
-    @property
-    def args(self):
-        return self.__args
-
-    @property
-    def token(self):
-        return self.__func_token
-
-
 class ConditionalStatementNode(AST):
     def __init__(self, if_cases, else_case):
         self.__if_cases = if_cases
@@ -271,6 +277,20 @@ class ReturnTypeNode(AST):
         return self.__val
 
 
+class ReturnStatementNode(AST):
+    def __init__(self, return_token, return_expr=None):
+        self.__token = return_token
+        self.__expr_node = return_expr
+
+    @property
+    def token(self):
+        return self.__token
+
+    @property
+    def expr_node(self):
+        return self.__expr_node
+
+
 class FuncParamNode(AST):
     def __init__(self, var_type_node, var_node):
         self.__var_type_node = var_type_node
@@ -286,9 +306,11 @@ class FuncParamNode(AST):
 
 
 class FuncDeclStatementNode(AST):
-    def __init__(self, return_type_node, func_name, func_params, func_body):
+    def __init__(self, return_type_node, func_token, func_params, func_body):
         self.__return_type_node = return_type_node
-        self.__name = func_name
+        self.__token = func_token
+        self.__name = func_token.val
+
         self.__params = func_params
         self.__body = func_body
 
@@ -307,6 +329,10 @@ class FuncDeclStatementNode(AST):
     @property
     def body(self):
         return self.__body
+
+    @property
+    def token(self):
+        return self.__token
 
 
 class StatementListNode(AST):

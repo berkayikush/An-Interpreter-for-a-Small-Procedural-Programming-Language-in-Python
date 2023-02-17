@@ -16,7 +16,7 @@ class ParserError(Error):
     NO_SEMICOLON = "No semicolon at the end of statement"
 
 
-class SemnaticError(Error):
+class SemanticError(Error):
     pass
 
 

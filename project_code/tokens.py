@@ -3,7 +3,7 @@ class Token:
     IDENTIFIER = "IDENTIFIER"  # An identifier is a combination of letters and numbers that begins with a letter
     # and can be followed by any number of additional letters and numbers.
 
-    SEMI_COLON = "SEMI_COLON"  # ";"
+    SEMICOLON = "SEMICOLON"  # ";"
     COLON = "COLON"  # ":"
     COMMA = "COMMA"  # ","
 
@@ -84,6 +84,7 @@ class Token:
     K_RANGE = "range"
     K_FUNC = "func"
     K_VOID = "void"
+    K_RETURN = "return"
 
     KEYWORDS = (
         K_VAR,
@@ -103,6 +104,7 @@ class Token:
         K_RANGE,
         K_FUNC,
         K_VOID,
+        K_RETURN,
     )
 
     ###########

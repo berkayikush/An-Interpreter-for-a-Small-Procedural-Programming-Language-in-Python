@@ -73,6 +73,12 @@ class BuiltInTypeSymbol(Symbol):
     def __init__(self, name):
         super().__init__(name)
 
+    def __eq__(self, other):
+        if not isinstance(other, BuiltInTypeSymbol):
+            return False
+
+        return self.name == other.name
+
 
 class VarSymbol(Symbol):
     """

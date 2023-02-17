@@ -1,6 +1,6 @@
 from .tokens import Token
 from .scope_symbol_table import BuiltInTypeSymbol
-from .error import SemnaticError
+from .error import SemanticError
 
 
 class TypeChecker:
@@ -123,6 +123,15 @@ class TypeChecker:
             )
 
     @staticmethod
+    def check_return_statement(func_symbol, curr_returned, return_token):
+        if func_symbol.type_ != curr_returned:
+            TypeChecker.__error(
+                f'Function "{func_symbol.name[5:]}" returns "{"nothing" if curr_returned is None else curr_returned.name}" '
+                f'but should return "{"nothing" if func_symbol.type_ is None else func_symbol.type_.name}"',
+                return_token,
+            )
+
+    @staticmethod
     def __check_arithmetic_op(op_token, left_node_type, right_node_type):
         match (left_node_type, right_node_type):
             case (Token.K_STR, _) | (_, Token.K_STR):
@@ -175,6 +184,6 @@ class TypeChecker:
 
     @staticmethod
     def __error(error_message, token):
-        raise SemnaticError(
+        raise SemanticError(
             error_message + f" on line: {token.line}, column: {token.col}",
         )
