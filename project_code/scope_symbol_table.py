@@ -27,7 +27,6 @@ class ScopeSymbolTable:
             "float": BuiltInTypeSymbol(Token.K_FLOAT),
             "bool": BuiltInTypeSymbol(Token.K_BOOL),
             "str": BuiltInTypeSymbol(Token.K_STR),
-            "range": BuiltInTypeSymbol(Token.K_RANGE),
         }
 
     def add_symbol(self, symbol):
@@ -91,6 +90,11 @@ class VarSymbol(Symbol):
 
 class ConditionalSymbol(Symbol):
     def __init__(self, name):
+        super().__init__(name=f"{name}_{id(self)}")
+
+
+class RangeSymbol(Symbol):
+    def __init__(self, name="range"):
         super().__init__(name=f"{name}_{id(self)}")
 
 

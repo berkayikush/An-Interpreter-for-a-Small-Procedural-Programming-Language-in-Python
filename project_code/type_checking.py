@@ -1,5 +1,5 @@
 from .tokens import Token
-from .scope_symbol_table import BuiltInTypeSymbol
+from .scope_symbol_table import BuiltInTypeSymbol, RangeSymbol
 from .error import SemanticError
 
 
@@ -113,11 +113,11 @@ class TypeChecker:
         if step_type is not None and step_type != Token.K_INT:
             TypeChecker.__error('Step of range must be "int"', range_token)
 
-        return BuiltInTypeSymbol(Token.K_RANGE)
+        return RangeSymbol()
 
     @staticmethod
     def check_iterable(iterable_type, iterable_token):
-        if iterable_type not in (Token.K_RANGE, Token.K_STR):
+        if not iterable_type.startswith("range") and iterable_type != Token.K_STR:
             TypeChecker.__error(
                 f'Cannot iterate over "{iterable_type}"', iterable_token
             )

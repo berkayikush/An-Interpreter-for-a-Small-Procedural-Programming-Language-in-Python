@@ -14,21 +14,13 @@ from project_code.interpreter import Interpreter
 
 def main():
     text = """
-    func(int) fibonacci(var(int) n) {
-        if (n == 0) {
-            return 0;
-        }
-        
-        elseif (n == 1) {
-            return 1;
-        }
-        
-        else {
-            return fibonacci(n - 1) + fibonacci(n - 2);
-        }
+    var(int) result = 0;
+    
+    for(var(int) n from 0.5 to 10) {
+        result += n;
     }
     
-    var(int) result = fibonacci(7);
+    var(int) i = result;
     """
 
     lexer = Lexer(text)

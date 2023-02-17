@@ -81,7 +81,8 @@ class Token:
     K_WHILE = "while"
     K_FOR = "for"
     K_FROM = "from"
-    K_RANGE = "range"
+    K_TO = "to"
+    K_STEP = "step"
     K_FUNC = "func"
     K_VOID = "void"
     K_RETURN = "return"
@@ -101,7 +102,8 @@ class Token:
         K_WHILE,
         K_FOR,
         K_FROM,
-        K_RANGE,
+        K_TO,
+        K_STEP,
         K_FUNC,
         K_VOID,
         K_RETURN,

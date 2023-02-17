@@ -346,24 +346,19 @@ class Parser:
 
         return WhileStatementNode(condition_node, statement_list)
 
-    def __range_expr(self):
+    def __range_expr(self, start_node):
         """
-        range_expr: K_RANGE LEFT_PARENTHESIS logical_expr COMMA logical_expr (COMMA logical_expr)? RIGHT_PARENTHESIS
+        range_expr: logical_expr K_TO logical_expr (K_STEP logical_expr)?
         """
-        self.__eat(Token.K_RANGE)
-        self.__eat(Token.LEFT_PARENTHESIS)
-
-        start_node = self.__logical_expr()
-        self.__eat(Token.COMMA)
+        self.__eat(Token.K_TO)
 
         end_node = self.__logical_expr()
         step_node = None
 
-        if self.__curr_token.type_ == Token.COMMA:
-            self.__eat(Token.COMMA)
+        if self.__curr_token.type_ == Token.K_STEP:
+            self.__eat(Token.K_STEP)
             step_node = self.__logical_expr()
 
-        self.__eat(Token.RIGHT_PARENTHESIS)
         return RangeExprNode(start_node, end_node, step_node)
 
     def __for_statement(self):
@@ -385,14 +380,12 @@ class Parser:
         var_decl = VarDeclStatementNode(type_node, [var_node])
         self.__eat(Token.K_FROM)
 
-        iterable = (
-            self.__range_expr()
-            if self.__curr_token.type_ == Token.K_RANGE
-            else self.__logical_expr()
-        )
-        self.__eat(Token.RIGHT_PARENTHESIS)
+        _ = self.__logical_expr()
+        iterable = self.__range_expr(_) if self.__curr_token.type_ == Token.K_TO else _
 
+        self.__eat(Token.RIGHT_PARENTHESIS)
         self.__eat(Token.LEFT_CURLY_BRACKET)
+
         statement_list = self.__statement_list()
         self.__eat(Token.RIGHT_CURLY_BRACKET)
 
