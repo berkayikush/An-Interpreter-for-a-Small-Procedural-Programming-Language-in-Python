@@ -1,4 +1,5 @@
-import sys, os
+import os
+import sys
 
 from project_code.error import (
     LexerError,
@@ -12,7 +13,7 @@ from project_code.semantic_analysis import SemanticAnalyzer
 from project_code.interpreter import Interpreter
 
 
-def main():
+def open_program_file():
     if len(sys.argv) < 2:
         print("Usage: python main.py <filename>.co")
         sys.exit(1)
@@ -32,7 +33,11 @@ def main():
         print(f"Error: File '{filename}' not found or could not be opened.")
         sys.exit(1)
 
-    lexer = Lexer(text)
+    return text
+
+
+def main():
+    lexer = Lexer(open_program_file())
 
     try:
         parser = Parser(lexer)

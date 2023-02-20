@@ -13,7 +13,7 @@ class Interpreter(ASTNodeVisitor):
     def __init__(self, ast):
         self.__ast = ast
         self.__zero_token = None  # Used for reporting errors.
-        self.__funcs = {}
+        self.__defined_funcs = {}
 
         self.__return_flag = False
         self.__return_val = None
@@ -42,9 +42,9 @@ class Interpreter(ASTNodeVisitor):
         func_name = ast_node.func_name
         func_args = ast_node.args
 
-        func_frame = copy.deepcopy(self.__funcs[func_name]["stack frame"])
-        func_param_names = self.__funcs[func_name]["param names"]
-        func_body = self.__funcs[func_name]["body"]
+        func_frame = copy.deepcopy(self.__defined_funcs[func_name]["stack frame"])
+        func_param_names = self.__defined_funcs[func_name]["param names"]
+        func_body = self.__defined_funcs[func_name]["body"]
 
         for i, arg in enumerate(func_args):
             func_frame[func_param_names[i]] = self.visit(arg)
@@ -325,7 +325,7 @@ class Interpreter(ASTNodeVisitor):
 
             param_names.append(param_name)
 
-        self.__funcs[func_name] = {
+        self.__defined_funcs[func_name] = {
             "stack frame": func_frame,
             "param names": param_names,
             "body": ast_node.body,

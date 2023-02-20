@@ -48,8 +48,8 @@ class Lexer:
 
                 return Token(Token.FLOAT, num, self.__line, self.__col)
 
-            if self.__is_comparsion_operator():
-                token_type, operator = self.__convert_to_comparsion_operator()
+            if self.__is_comparison_operator():
+                token_type, operator = self.__convert_to_comparison_operator()
                 return Token(token_type, operator, self.__line, self.__col)
 
             if self.__is_assignment_operator():
@@ -176,7 +176,7 @@ class Lexer:
 
         return token_type, bracket
 
-    def __convert_to_comparsion_operator(self):
+    def __convert_to_comparison_operator(self):
         operator = self.__curr_char
         self.__advance()
 
@@ -214,7 +214,9 @@ class Lexer:
     def __convert_to_id(self):
         identifier = ""
 
-        while self.__curr_char is not None and self.__curr_char.isalnum():
+        while self.__curr_char is not None and (
+            self.__curr_char.isalnum() or self.__curr_char == "_"
+        ):
             identifier += self.__curr_char
             self.__advance()
 
@@ -310,7 +312,7 @@ class Lexer:
     def __is_bracket(self):
         return self.__curr_char in ["[", "]"]
 
-    def __is_comparsion_operator(self):
+    def __is_comparison_operator(self):
         return (
             (self.__curr_char == "=" and self.__check_next_char() == "=")
             or (self.__curr_char == "!")
