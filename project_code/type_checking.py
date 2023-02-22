@@ -35,7 +35,7 @@ class TypeChecker:
 
             return BuiltInTypeSymbol(Token.K_BOOL)
 
-        if op_token.type_ in (Token.K_NOT, Token.MINUS, Token.PLUS):
+        if op_token.type_ in (Token.MINUS, Token.PLUS):
             match child_node_type:
                 case Token.K_STR | Token.K_BOOL:
                     TypeChecker.__error(

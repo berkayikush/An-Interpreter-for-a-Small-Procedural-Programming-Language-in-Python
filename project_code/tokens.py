@@ -83,6 +83,8 @@ class Token:
     K_FROM = "from"
     K_TO = "to"
     K_STEP = "step"
+    K_CONTINUE = "continue"
+    K_BREAK = "break"
     K_FUNC = "func"
     K_VOID = "void"
     K_RETURN = "return"
@@ -104,6 +106,8 @@ class Token:
         K_FROM,
         K_TO,
         K_STEP,
+        K_CONTINUE,
+        K_BREAK,
         K_FUNC,
         K_VOID,
         K_RETURN,

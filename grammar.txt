@@ -18,8 +18,8 @@ program: statement_list
 
 statement_list: statement_list: statement statement_list | empty_statement
 statement: func_decl_statement | return_statement SEMICOLON | var_decl_statement SEMICOLON | for_statement | 
-           while_loop_statement | conditional_statement | func_call SEMICOLON | 
-           assignment_statement SEMICOLON | empty_statement
+           continue_statement SEMICOLON | break_statement SEMICOLON | while_loop_statement | 
+           conditional_statement | func_call SEMICOLON | assignment_statement SEMICOLON | empty_statement
 
 func_decl_statement: K_FUNC LEFT_PARENTHESIS return_type RIGHT_PARENTHESIS IDENTIFIER
                             LEFT_PARENTHESIS (func_params)? RIGHT_PARENTHESIS
@@ -39,6 +39,9 @@ for_statement: K_FOR LEFT_PARENTHESIS K_VAR LEFT_PARENTHESIS var_type RIGHT_PARE
                LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET
 
 range_expr: logical_expr K_TO logical_expr (K_STEP logical_expr)?
+
+continue_statement: K_CONTINUE
+break_statement: K_BREAK
 
 while_statement: K_WHILE LEFT_PARENTHESIS logical_expr RIGHT_PARENTHESIS 
                  LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET
@@ -72,3 +75,8 @@ factor: (INT | FLOAT | BOOL | STR)
 accessor: (STR | var_name) LEFT_SQUARE_BRACKET logical_expr (COLON logical_expr)? RIGHT_SQUARE_BRACKET
 func_call: IDENTIFIER LEFT_PARENTHESIS (logical_expr (COMMA logical_expr)*)? RIGHT_PARENTHESIS
 var_name: IDENTIFIER
+
+------------------------
+--------EXAMPLES--------
+------------------------
+Check out the example programs in the examples folder.

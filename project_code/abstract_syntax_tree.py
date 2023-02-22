@@ -198,6 +198,24 @@ class WhileStatementNode(AST):
         return self.__statement_list_node
 
 
+class BreakStatementNode(AST):
+    def __init__(self, token):
+        self.__token = token
+
+    @property
+    def token(self):
+        return self.__token
+
+
+class ContinueStatementNode(AST):
+    def __init__(self, token):
+        self.__token = token
+
+    @property
+    def token(self):
+        return self.__token
+
+
 class RangeExprNode(AST):
     def __init__(self, start_node, end_node, step_node):
         self.__start_node = start_node

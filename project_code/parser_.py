@@ -12,6 +12,8 @@ from .abstract_syntax_tree import (
     FuncCallNode,
     ConditionalStatementNode,
     WhileStatementNode,
+    BreakStatementNode,
+    ContinueStatementNode,
     RangeExprNode,
     ForStatementNode,
     VarTypeNode,
@@ -346,6 +348,22 @@ class Parser:
 
         return WhileStatementNode(condition_node, statement_list)
 
+    def __break_statement(self):
+        """
+        break_statement: K_BREAK
+        """
+        break_token = self.__curr_token
+        self.__eat(Token.K_BREAK)
+        return BreakStatementNode(break_token)
+
+    def __continue_statement(self):
+        """
+        continue_statement: K_CONTINUE
+        """
+        continue_token = self.__curr_token
+        self.__eat(Token.K_CONTINUE)
+        return ContinueStatementNode(continue_token)
+
     def __range_expr(self, start_node):
         """
         range_expr: logical_expr K_TO logical_expr (K_STEP logical_expr)?
@@ -548,8 +566,8 @@ class Parser:
     def __statement(self):
         """
         statement: func_decl_statement | return_statement SEMICOLON | var_decl_statement SEMICOLON | for_statement |
-                   while_loop_statement | conditional_statement | func_call SEMICOLON |
-                   assignment_statement SEMICOLON | empty_statement
+                   continue_statement SEMICOLON | break_statement SEMICOLON | while_loop_statement |
+                   conditional_statement | func_call SEMICOLON | assignment_statement SEMICOLON | empty_statement
         """
         if self.__curr_token.type_ == Token.K_FUNC:
             return self.__func_decl_statement()
@@ -566,6 +584,16 @@ class Parser:
 
         if self.__curr_token.type_ == Token.K_FOR:
             return self.__for_statement()
+
+        if self.__curr_token.type_ == Token.K_CONTINUE:
+            curr_statement = self.__continue_statement()
+            self.__eat(Token.SEMICOLON)
+            return curr_statement
+
+        if self.__curr_token.type_ == Token.K_BREAK:
+            curr_statement = self.__break_statement()
+            self.__eat(Token.SEMICOLON)
+            return curr_statement
 
         if self.__curr_token.type_ == Token.K_WHILE:
             return self.__while_statement()

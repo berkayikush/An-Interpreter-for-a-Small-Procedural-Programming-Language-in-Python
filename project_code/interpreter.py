@@ -18,6 +18,9 @@ class Interpreter(ASTNodeVisitor):
         self.__return_flag = False
         self.__return_val = None
 
+        self.__continue_flag = False
+        self.__break_flag = False
+
     def interpret(self):
         if self.__ast is None:
             return ""
@@ -242,6 +245,12 @@ class Interpreter(ASTNodeVisitor):
 
         Interpreter.PROGRAM_STACK.pop()
 
+    def visitBreakStatementNode(self, ast_node):
+        self.__break_flag = True
+
+    def visitContinueStatementNode(self, ast_node):
+        self.__continue_flag = True
+
     def visitRangeExprNode(self, ast_node):
         start = self.visit(ast_node.start_node)
         end = self.visit(ast_node.end_node)
@@ -277,6 +286,14 @@ class Interpreter(ASTNodeVisitor):
             curr_stack_frame.set(var_node.val, val=val)
             print(Interpreter.PROGRAM_STACK)
             self.visit(ast_node.statement_list_node)
+
+            if self.__break_flag:
+                self.__break_flag = False
+                break
+
+            if self.__continue_flag:
+                self.__continue_flag = False
+                continue
 
         print("Exiting", "for statement", "scope")
         Interpreter.PROGRAM_STACK.pop()
@@ -335,7 +352,7 @@ class Interpreter(ASTNodeVisitor):
         for statement in ast_node.statements:
             self.visit(statement)
 
-            if self.__return_flag:
+            if self.__return_flag or self.__break_flag or self.__continue_flag:
                 break
 
     def visitProgramNode(self, ast_node):

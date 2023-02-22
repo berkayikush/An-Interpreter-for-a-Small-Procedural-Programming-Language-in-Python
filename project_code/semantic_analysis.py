@@ -178,6 +178,27 @@ class SemanticAnalyzer(ASTNodeVisitor):
         self.visit(ast_node.statement_list_node)
         self.__curr_scope_symbol_table = self.__curr_scope_symbol_table.outer_scope
 
+    def visitBreakStatementNode(self, ast_node):
+        if not self.__is_in_loop():
+            self.__error("Break statement outside of loop", ast_node.token)
+
+    def visitContinueStatementNode(self, ast_node):
+        if not self.__is_in_loop():
+            self.__error("Continue statement outside of loop", ast_node.token)
+
+    def __is_in_loop(self):
+        curr_scope_symbol_table_cpy = copy.copy(self.__curr_scope_symbol_table)
+
+        while curr_scope_symbol_table_cpy.scope_name != "global":
+            if curr_scope_symbol_table_cpy.scope_name.startswith(
+                "for"
+            ) or curr_scope_symbol_table_cpy.scope_name.startswith("while"):
+                return True
+
+            curr_scope_symbol_table_cpy = curr_scope_symbol_table_cpy.outer_scope
+
+        return False
+
     def visitRangeExprNode(self, ast_node):
         return TypeChecker.check_range_expr(
             start_type=self.visit(ast_node.start_node).name,
