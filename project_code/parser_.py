@@ -54,9 +54,9 @@ class Parser:
 
     def __error(self, token_type=None):
         error_message = (
-            f"{ParserError.NO_SEMICOLON}"
-            if token_type == Token.SEMICOLON
-            else f'{ParserError.UNEXPECTED_TOKEN} "{self.__curr_token.val}"'
+            f'{ParserError.UNEXPECTED_TOKEN} "{self.__curr_token.val}"'
+            if token_type is None
+            else f'{ParserError.EXPECTED_TOKEN} "{token_type}"'
         )
 
         raise ParserError(
