@@ -9,6 +9,7 @@ from .program_stack import ProgramStack, StackFrame
 
 class Interpreter(ASTNodeVisitor):
     PROGRAM_STACK = ProgramStack()
+    BUILT_IN_FUNCS = ["print", "println", "reverse", "len", "pow", "typeof"]
 
     def __init__(self, ast):
         self.__ast = ast
@@ -45,6 +46,9 @@ class Interpreter(ASTNodeVisitor):
         func_name = ast_node.func_name
         func_args = ast_node.args
 
+        if func_name in Interpreter.BUILT_IN_FUNCS:
+            return self.__call_builtin_func(func_name, func_args)
+
         func_frame = copy.deepcopy(self.__defined_funcs[func_name]["stack frame"])
         func_param_names = self.__defined_funcs[func_name]["param names"]
         func_body = self.__defined_funcs[func_name]["body"]
@@ -53,13 +57,7 @@ class Interpreter(ASTNodeVisitor):
             func_frame[func_param_names[i]] = self.visit(arg)
 
         Interpreter.PROGRAM_STACK.push(func_frame)
-
-        print(f"Entering function {ast_node.func_name} scope")
-        print(Interpreter.PROGRAM_STACK)
         self.visit(func_body)
-        print(f"Exiting function {ast_node.func_name} scope")
-        print(Interpreter.PROGRAM_STACK)
-
         Interpreter.PROGRAM_STACK.pop()
 
         if self.__return_flag:
@@ -68,6 +66,32 @@ class Interpreter(ASTNodeVisitor):
 
             self.__return_val = None
             return return_val
+
+    def __call_builtin_func(self, func_name, func_args):
+        match func_name:
+            case "print" | "println":
+                func_args_vals = [self.visit(arg) for arg in func_args]
+                func_arg_vals = [
+                    "true"
+                    if arg_val is True
+                    else "false"
+                    if arg_val is False
+                    else arg_val
+                    for arg_val in func_args_vals
+                ]
+
+                if func_name == "println":
+                    print(*func_arg_vals)
+                else:
+                    print(*func_args_vals, end="")
+            case "reverse":
+                return self.visit(func_args[0])[::-1]
+            case "len":
+                return len(self.visit(func_args[0]))
+            case "pow":
+                return self.visit(func_args[0]) ** self.visit(func_args[1])
+            case "typeof":
+                return type(self.visit(func_args[0])).__name__
 
     def visitAccessNode(self, ast_node):
         """
@@ -195,11 +219,7 @@ class Interpreter(ASTNodeVisitor):
                     )
                 )
 
-                print("Entering", stack_frame_name, "scope")
-                print(Interpreter.PROGRAM_STACK)
                 self.visit(statement)
-                print("Exiting", stack_frame_name, "scope")
-                print(Interpreter.PROGRAM_STACK)
                 Interpreter.PROGRAM_STACK.pop()
                 return
 
@@ -214,11 +234,7 @@ class Interpreter(ASTNodeVisitor):
                 )
             )
 
-            print("Entering", "else statement", "scope")
-            print(Interpreter.PROGRAM_STACK)
             self.visit(ast_node.else_case)
-            print("Exiting", "else statement", "scope")
-            print(Interpreter.PROGRAM_STACK)
             Interpreter.PROGRAM_STACK.pop()
 
     def visitWhileStatementNode(self, ast_node):
@@ -238,10 +254,7 @@ class Interpreter(ASTNodeVisitor):
             if not condition_result:
                 break
 
-            print("Entering", "while statement", "scope")
-            print(Interpreter.PROGRAM_STACK)
             self.visit(ast_node.statement_list_node)
-            print("Exiting", "while statement", "scope")
 
         Interpreter.PROGRAM_STACK.pop()
 
@@ -256,9 +269,9 @@ class Interpreter(ASTNodeVisitor):
         end = self.visit(ast_node.end_node)
 
         return (
-            range(start, end)
+            range(start, end + 1)
             if ast_node.step_node is None
-            else range(start, end, self.visit(ast_node.step_node))
+            else range(start, end + 1, self.visit(ast_node.step_node))
         )
 
     def visitForStatementNode(self, ast_node):
@@ -274,9 +287,6 @@ class Interpreter(ASTNodeVisitor):
             )
         )
 
-        print("Entering", "for statement", "scope")
-        print(Interpreter.PROGRAM_STACK)
-
         self.visit(ast_node.var_decl_statement_node)
         var_node = ast_node.var_decl_statement_node.variables[0]
 
@@ -284,7 +294,6 @@ class Interpreter(ASTNodeVisitor):
 
         for val in iterable:
             curr_stack_frame.set(var_node.val, val=val)
-            print(Interpreter.PROGRAM_STACK)
             self.visit(ast_node.statement_list_node)
 
             if self.__break_flag:
@@ -295,7 +304,6 @@ class Interpreter(ASTNodeVisitor):
                 self.__continue_flag = False
                 continue
 
-        print("Exiting", "for statement", "scope")
         Interpreter.PROGRAM_STACK.pop()
 
     def visitVarTypeNode(self, ast_node):
@@ -360,7 +368,6 @@ class Interpreter(ASTNodeVisitor):
             StackFrame("global", StackFrame.GLOBAL, scope_level=1)
         )
         self.visit(ast_node.statement_list_node)
-        print(Interpreter.PROGRAM_STACK)
         Interpreter.PROGRAM_STACK.pop()
 
     def __error(self, error_message, token):

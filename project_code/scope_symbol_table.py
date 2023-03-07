@@ -27,6 +27,14 @@ class ScopeSymbolTable:
             "float": BuiltInTypeSymbol(Token.K_FLOAT),
             "bool": BuiltInTypeSymbol(Token.K_BOOL),
             "str": BuiltInTypeSymbol(Token.K_STR),
+            "func_print": BuiltInFuncSymbol("print"),
+            "func_println": BuiltInFuncSymbol("println"),
+            "func_reverse": BuiltInFuncSymbol(
+                "reverse", BuiltInTypeSymbol(Token.K_STR)
+            ),
+            "func_len": BuiltInFuncSymbol("len", BuiltInTypeSymbol(Token.K_INT)),
+            "func_pow": BuiltInFuncSymbol("pow", BuiltInTypeSymbol(Token.K_FLOAT)),
+            "func_typeof": BuiltInFuncSymbol("typeof", BuiltInTypeSymbol(Token.K_STR)),
         }
 
     def add_symbol(self, symbol):
@@ -79,6 +87,11 @@ class BuiltInTypeSymbol(Symbol):
         return self.name == other.name
 
 
+class BuiltInFuncSymbol(Symbol):
+    def __init__(self, name, type_=None):
+        super().__init__(f"func_{name}", type_)
+
+
 class VarSymbol(Symbol):
     """
     Used to make sure that a variable is declared before it is used.
@@ -108,10 +121,6 @@ class FuncSymbol(Symbol):
         super().__init__(f"func_{name}", type_)
         self.__params = params if params is not None else []
         self.__num_default_params = 0  # Used to check if params number is correct.
-
-    @property
-    def name(self):
-        return self._name
 
     @property
     def params(self):

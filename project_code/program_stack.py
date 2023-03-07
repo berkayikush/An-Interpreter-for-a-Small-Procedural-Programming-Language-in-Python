@@ -14,14 +14,6 @@ class ProgramStack:
     def size(self):
         return len(self.stack)
 
-    def __str__(self):
-        s = "\n".join(repr(frame) for frame in reversed(self.stack))
-        s = f"Program Stack\n{s}\n"
-        return s
-
-    def __repr__(self):
-        return self.__str__()
-
 
 class StackFrame:
     ###############
@@ -70,15 +62,3 @@ class StackFrame:
 
     def __setitem__(self, key, val):
         self.__variables[key] = val
-
-    def __str__(self):
-        lines = [f"{self.__scope_level} {self.__type_} {self.__name}"]
-
-        for key, val in self.__variables.items():
-            lines.append(f"\t{key:<20} = {val}")
-
-        s = "\n".join(lines)
-        return s
-
-    def __repr__(self):
-        return self.__str__()

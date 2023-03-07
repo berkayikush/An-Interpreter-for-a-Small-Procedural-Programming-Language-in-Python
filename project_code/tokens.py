@@ -3,9 +3,9 @@ class Token:
     IDENTIFIER = "IDENTIFIER"  # An identifier is a combination of letters and numbers that begins with a letter
     # and can be followed by any number of additional letters and numbers.
 
-    SEMICOLON = "SEMICOLON"  # ";"
-    COLON = "COLON"  # ":"
-    COMMA = "COMMA"  # ","
+    SEMICOLON = ";"
+    COLON = ":"
+    COMMA = ","
 
     ##############
     # Data Types #
@@ -18,51 +18,51 @@ class Token:
     #########################
     # Arithmetic Operations #
     #########################
-    PLUS = "PLUS"  # "+"
-    MINUS = "MINUS"  # "-"
-    MULTIPLICATION = "MULTIPLICATION"  # "*"
-    INT_DIVISION = "INT_DIVISION"  # "//"
-    FLOAT_DIVISION = "FLOAT_DIVISION"  # "/"
-    MODULO = "MODULO"  # "%"
+    PLUS = "+"
+    MINUS = "-"
+    MULTIPLICATION = "*"
+    INT_DIVISION = "//"
+    FLOAT_DIVISION = "/"
+    MODULO = "%"
 
     #########################
     # Assignment Operations #
     #########################
-    ASSIGN = "ASSIGN"  # "="
-    PLUS_ASSIGN = "PLUS_ASSIGN"  # "+="
-    MINUS_ASSIGN = "MINUS_ASSIGN"  # "-="
-    MULTIPLICATION_ASSIGN = "MULTIPLY_ASSIGN"  # "*="
-    FLOAT_DIVISION_ASSIGN = "DIVISION_ASSIGN"  # "/="
-    INT_DIVISION_ASSIGN = "DIVISION_ASSIGN"  # "//="
-    MODULO_ASSIGN = "MODULO_ASSIGN"  # "%="
+    ASSIGN = "="
+    PLUS_ASSIGN = "+="
+    MINUS_ASSIGN = "-="
+    MULTIPLICATION_ASSIGN = "*="
+    FLOAT_DIVISION_ASSIGN = "/="
+    INT_DIVISION_ASSIGN = "//="
+    MODULO_ASSIGN = "%="
 
     #########################
     # Comparison Operations #
     #########################
-    EQUALS = "EQUALS"  # "=="
-    NOT_EQUALS = "NOT_EQUALS"  # "!="
-    LESS_THAN = "LESS_THAN"  # "<"
-    LESS_THAN_OR_EQUALS = "LESS_THAN_OR_EQUALS"  # "<="
-    GREATER_THAN = "GREATER_THAN"  # ">"
-    GREATER_THAN_OR_EQUALS = "GREATER_THAN_OR_EQUALS"  # ">="
+    EQUALS = "=="
+    NOT_EQUALS = "!="
+    LESS_THAN = "<"
+    LESS_THAN_OR_EQUALS = "<="
+    GREATER_THAN = ">"
+    GREATER_THAN_OR_EQUALS = ">="
 
     ###############
     # Parentheses #
     ###############
-    LEFT_PARENTHESIS = "LEFT_PARENTHESIS"  # "("
-    RIGHT_PARENTHESIS = "RIGHT_PARENTHESIS"  # ")"
+    LEFT_PARENTHESIS = "("
+    RIGHT_PARENTHESIS = ")"
 
     ############
     # Brackets #
     ############
-    LEFT_SQUARE_BRACKET = "LEFT_SQUARE_BRACKET"  # "["
-    RIGHT_SQUARE_BRACKET = "RIGHT_SQUARE_BRACKET"  # "]"
+    LEFT_SQUARE_BRACKET = "["
+    RIGHT_SQUARE_BRACKET = "]"
 
     ###########
     # Wrapper #
     ###########
-    LEFT_CURLY_BRACKET = "LEFT_CURLY_BRACKET"  # "{"
-    RIGHT_CURLY_BRACKET = "RIGHT_CURLY_BRACKET"  # "}"
+    LEFT_CURLY_BRACKET = "{"
+    RIGHT_CURLY_BRACKET = "}"
 
     ############
     # KEYWORDS #
@@ -116,7 +116,7 @@ class Token:
     ###########
     # COMMENT #
     ###########
-    MULTI_LINE_COMMENT = "MULTI_LINE_COMMENT"  # "/* */"
+    MULTI_LINE_COMMENT = "/* */"
 
     def __init__(self, _type, val=None, line=None, col=None):
         self.__type = _type

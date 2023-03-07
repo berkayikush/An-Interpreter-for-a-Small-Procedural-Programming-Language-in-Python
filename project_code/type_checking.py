@@ -25,6 +25,26 @@ class TypeChecker:
             )
 
     @staticmethod
+    def check_built_in_func_call(func_name, func_arg_types, func_token):
+        match func_name:
+            case "reverse" | "len":
+                if func_arg_types[0] != Token.K_STR:
+                    TypeChecker.__error(
+                        f'Function "{func_name}" must take a string argument',
+                        func_token,
+                    )
+
+            case "pow":
+                if func_arg_types[0] not in (
+                    Token.K_FLOAT,
+                    Token.K_INT,
+                ) or func_arg_types[1] not in (Token.K_FLOAT, Token.K_INT):
+                    TypeChecker.__error(
+                        f'Function "{func_name}" must take two float arguments',
+                        func_token,
+                    )
+
+    @staticmethod
     def check_unary_op(op_token, child_node_type):
         if op_token.type_ == Token.K_NOT:
             if child_node_type != Token.K_BOOL:

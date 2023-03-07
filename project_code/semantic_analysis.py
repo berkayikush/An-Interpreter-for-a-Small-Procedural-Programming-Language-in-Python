@@ -6,6 +6,7 @@ from .visit_ast_node import ASTNodeVisitor
 from .scope_symbol_table import (
     ScopeSymbolTable,
     BuiltInTypeSymbol,
+    BuiltInFuncSymbol,
     VarSymbol,
     ConditionalSymbol,
     LoopSymbol,
@@ -35,14 +36,38 @@ class SemanticAnalyzer(ASTNodeVisitor):
         return variable_symbol.type_
 
     def visitFuncCallNode(self, ast_node):
-        func_symbol = self.__curr_scope_symbol_table.get_symbol(
-            f"func_{ast_node.func_name}"
-        )
+        func_name = ast_node.func_name
+        func_token = ast_node.token
+        func_args = ast_node.args
+        func_symbol = self.__curr_scope_symbol_table.get_symbol(f"func_{func_name}")
 
         if func_symbol is None:
-            self.__error(f'Function "{ast_node.func_name}" not found', ast_node.token)
+            self.__error(f'Function "{func_name}" not found', func_token)
 
-        num_args = len(ast_node.args)
+        if isinstance(func_symbol, BuiltInFuncSymbol):
+            if func_name in ("reverse", "len") and len(func_args) != 1:
+                self.__error(
+                    f'Function "{func_name}" must take 1 argument',
+                    func_token,
+                )
+
+            if func_name == "pow" and len(func_args) != 2:
+                self.__error(
+                    f'Function "{func_name}" must take 2 arguments',
+                    func_token,
+                )
+
+            if func_name == "typeof" and len(func_args) != 1:
+                self.__error(
+                    f'Function "{func_name}" must take 1 argument',
+                    func_token,
+                )
+
+            func_arg_types = [self.visit(arg).name for arg in func_args]
+            TypeChecker.check_built_in_func_call(func_name, func_arg_types, func_token)
+            return func_symbol.type_
+
+        num_args = len(func_args)
         num_params = len(func_symbol.params)
 
         num_default_params = func_symbol.num_default_params
@@ -50,13 +75,13 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
         if (num_args < num_non_default_params) or (num_args > num_params):
             self.__error(
-                f'Function "{ast_node.func_name}" takes {num_non_default_params}'
+                f'Function "{func_name}" takes {num_non_default_params}'
                 f'{"" if num_params in (0, num_non_default_params) else " to "+str(num_params)} '
                 f"positional arguments but {num_args} were given",
-                ast_node.token,
+                func_token,
             )
 
-        for i, arg in enumerate(ast_node.args):
+        for i, arg in enumerate(func_args):
             TypeChecker.check_assignment_statement(
                 func_symbol.params[i].type_.name,
                 self.visit(arg).name,
@@ -65,8 +90,8 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
         if func_symbol.type_ is None and not ast_node.is_statement:
             self.__error(
-                f'Function "{ast_node.func_name}" does not return a value',
-                ast_node.token,
+                f'Function "{func_name}" does not return a value',
+                func_token,
             )
 
         return func_symbol.type_
@@ -291,6 +316,11 @@ class SemanticAnalyzer(ASTNodeVisitor):
         self.__error("Return statement outside function", ast_node.token)
 
     def visitFuncDeclStatementNode(self, ast_node):
+        if self.__curr_scope_symbol_table.get_symbol("func_" + ast_node.name):
+            self.__error(
+                f'Function "{ast_node.name}" is declared again', ast_node.token
+            )
+
         return_type_symbol = self.__curr_scope_symbol_table.get_symbol(
             ast_node.return_type_node.val
         )
