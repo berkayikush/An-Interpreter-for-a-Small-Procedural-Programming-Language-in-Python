@@ -45,8 +45,22 @@ class SemanticAnalyzer(ASTNodeVisitor):
             self.__error(f'Function "{func_name}" not found', func_token)
 
         if isinstance(func_symbol, BuiltInFuncSymbol):
+            if func_name == "input" and len(func_args) not in (0, 1):
+                self.__error(
+                    f'Function "{func_name}" must take 0 or 1 argument', func_token
+                )
+
             if (
-                func_name in ("input", "reverse", "len", "typeof")
+                func_name
+                in (
+                    "reverse",
+                    "len",
+                    "typeof",
+                    "toint",
+                    "tofloat",
+                    "tobool",
+                    "tostr",
+                )
                 and len(func_args) != 1
             ):
                 self.__error(

@@ -9,7 +9,19 @@ from .program_stack import ProgramStack, StackFrame
 
 class Interpreter(ASTNodeVisitor):
     PROGRAM_STACK = ProgramStack()
-    BUILT_IN_FUNCS = ["print", "println", "input", "reverse", "len", "pow", "typeof"]
+    BUILT_IN_FUNCS = [
+        "print",
+        "println",
+        "input",
+        "reverse",
+        "len",
+        "pow",
+        "typeof",
+        "toint",
+        "tofloat",
+        "tobool",
+        "tostr",
+    ]
 
     def __init__(self, ast):
         self.__ast = ast
@@ -85,7 +97,7 @@ class Interpreter(ASTNodeVisitor):
                 else:
                     print(*func_args_vals, end="")
             case "input":
-                return input(self.visit(func_args[0]))
+                return input(self.visit(func_args[0]) if func_args else "")
             case "reverse":
                 return self.visit(func_args[0])[::-1]
             case "len":
@@ -94,6 +106,24 @@ class Interpreter(ASTNodeVisitor):
                 return self.visit(func_args[0]) ** self.visit(func_args[1])
             case "typeof":
                 return type(self.visit(func_args[0])).__name__
+            case "toint" | "tofloat" | "tobool" | "tostr":
+                func_arg_val = self.visit(func_args[0])
+
+                try:
+                    match func_name:
+                        case "toint":
+                            return int(func_arg_val)
+                        case "tofloat":
+                            return float(func_arg_val)
+                        case "tobool":
+                            return bool(func_arg_val)
+                        case "tostr":
+                            return str(func_arg_val)
+                except ValueError:
+                    self.__error(
+                        f'Invalid literal for "{func_name}": "{func_arg_val}"',
+                        func_args[0].token,
+                    )
 
     def visitAccessNode(self, ast_node):
         """

@@ -36,6 +36,12 @@ class ScopeSymbolTable:
             "func_len": BuiltInFuncSymbol("len", BuiltInTypeSymbol(Token.K_INT)),
             "func_pow": BuiltInFuncSymbol("pow", BuiltInTypeSymbol(Token.K_FLOAT)),
             "func_typeof": BuiltInFuncSymbol("typeof", BuiltInTypeSymbol(Token.K_STR)),
+            "func_toint": BuiltInFuncSymbol("toint", BuiltInTypeSymbol(Token.K_INT)),
+            "func_tofloat": BuiltInFuncSymbol(
+                "tofloat", BuiltInTypeSymbol(Token.K_FLOAT)
+            ),
+            "func_tobool": BuiltInFuncSymbol("tobool", BuiltInTypeSymbol(Token.K_BOOL)),
+            "func_tostr": BuiltInFuncSymbol("tostr", BuiltInTypeSymbol(Token.K_STR)),
         }
 
     def add_symbol(self, symbol):
