@@ -1,7 +1,7 @@
 import copy
 
 from .tokens import Token
-from .abstract_syntax_tree import VarNode, AssignmentStatementNode
+from .abstract_syntax_tree import VarNode, AccessNode, AssignmentStatementNode
 from .visit_ast_node import ASTNodeVisitor
 from .scope_symbol_table import (
     ScopeSymbolTable,
@@ -140,8 +140,15 @@ class SemanticAnalyzer(ASTNodeVisitor):
         pass
 
     def visitAssignmentStatementNode(self, ast_node):
+        left_node = ast_node.left_node
+
+        if isinstance(left_node, AccessNode):
+            TypeChecker.check_accessor_assignment_statement(
+                self.visit(left_node.accessor_node).name, left_node.accessor_node.token
+            )
+
         TypeChecker.check_assignment_statement(
-            var_type=self.visit(ast_node.left_node).name,
+            var_type=self.visit(left_node).name,
             var_val_type=self.visit(ast_node.right_node).name,
             var_val_token=ast_node.right_node.token,
         )

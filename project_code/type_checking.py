@@ -119,6 +119,14 @@ class TypeChecker:
             )
 
     @staticmethod
+    def check_accessor_assignment_statement(accessor_type, accessor_token):
+        if accessor_type == Token.K_STR:
+            TypeChecker.__error(
+                "Strings are immutable",
+                accessor_token,
+            )
+
+    @staticmethod
     def check_condition(condition_type, condition_token):
         if condition_type != Token.K_BOOL:
             TypeChecker.__error(

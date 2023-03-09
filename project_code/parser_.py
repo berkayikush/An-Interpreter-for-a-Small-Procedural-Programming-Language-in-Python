@@ -240,10 +240,14 @@ class Parser:
 
     def __assign_statement(self):
         """
-        assign_statement: var_name (ASSIGN | PLUS_ASSIGN | MINUS_ASSIGN | MULTIPLICATION_ASSIGN
-                                    | FLOAT_DIVISION_ASSIGN | INT_DIVISION_ASSIGN | MODULO_ASSIGN) expr
+        assign_statement: (var_name | accessor) (ASSIGN | PLUS_ASSIGN | MINUS_ASSIGN | MULTIPLICATION_ASSIGN |
+                                                 FLOAT_DIVISION_ASSIGN | INT_DIVISION_ASSIGN | MODULO_ASSIGN) expr
         """
-        left_node = self.__var_name()
+        left_node = (
+            self.__accessor()
+            if self.__lexer.check_curr_char() == "["
+            else self.__var_name()
+        )
         op_token = self.__curr_token
 
         match (op_token.type_):

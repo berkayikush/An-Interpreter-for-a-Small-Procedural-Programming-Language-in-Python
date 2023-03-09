@@ -1,6 +1,6 @@
 import copy
 
-from .abstract_syntax_tree import VarNode, AssignmentStatementNode
+from .abstract_syntax_tree import VarNode, AccessNode, AssignmentStatementNode
 from .error import InterpreterError
 from .tokens import Token
 from .visit_ast_node import ASTNodeVisitor
@@ -107,13 +107,19 @@ class Interpreter(ASTNodeVisitor):
             else self.visit(ast_node.end_index_node)
         )
 
+        self.__check_start_index(start_index, end_index, accessor_len, ast_node.token)
+        return (
+            accessor[start_index]
+            if end_index is None
+            else accessor[start_index:end_index]
+        )
+
+    def __check_start_index(self, start_index, end_index, accessor_len, accessor_token):
         if abs(start_index) >= accessor_len:
             self.__error(
                 f'Index out of range: "[{start_index}{":"+str(end_index) if end_index is not None else ""}]"',
-                ast_node.token,
+                accessor_token,
             )
-
-        return accessor[start_index:end_index]
 
     def visitNumberNode(self, ast_node):
         if ast_node.val == 0:
@@ -198,9 +204,44 @@ class Interpreter(ASTNodeVisitor):
 
     def visitAssignmentStatementNode(self, ast_node):
         curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
-        curr_stack_frame.set(
-            ast_node.left_node.val, val=self.visit(ast_node.right_node)
-        )
+
+        # Handle the case where ast_node.left_node is an AccessNode.
+        if isinstance(ast_node.left_node, AccessNode):
+            access_node = ast_node.left_node
+
+            if not isinstance(access_node.accessor_node, VarNode):
+                return
+
+            accessor = curr_stack_frame.get(access_node.accessor_node.val)
+            accessor_len = len(accessor)
+
+            start_index = self.visit(access_node.start_index_node)
+            end_index = (
+                None
+                if access_node.end_index_node is None
+                else self.visit(access_node.end_index_node)
+            )
+
+            self.__check_start_index(
+                start_index,
+                end_index,
+                accessor_len,
+                access_node.accessor_node.token,
+            )
+            right_node_val = self.visit(ast_node.right_node)
+
+            if end_index is None:
+                accessor[start_index] = right_node_val
+            else:
+                accessor[start_index:end_index] = right_node_val
+
+            left_node_val = access_node.accessor_node.val
+            right_node_val = accessor
+        else:
+            left_node_val = ast_node.left_node.val
+            right_node_val = self.visit(ast_node.right_node)
+
+        curr_stack_frame.set(left_node_val, val=right_node_val)
 
     def visitConditionalStatementNode(self, ast_node):
         for i, (condition, statement) in enumerate(ast_node.if_cases):
