@@ -9,7 +9,7 @@ from .program_stack import ProgramStack, StackFrame
 
 class Interpreter(ASTNodeVisitor):
     PROGRAM_STACK = ProgramStack()
-    BUILT_IN_FUNCS = ["print", "println", "reverse", "len", "pow", "typeof"]
+    BUILT_IN_FUNCS = ["print", "println", "input", "reverse", "len", "pow", "typeof"]
 
     def __init__(self, ast):
         self.__ast = ast
@@ -84,6 +84,8 @@ class Interpreter(ASTNodeVisitor):
                     print(*func_arg_vals)
                 else:
                     print(*func_args_vals, end="")
+            case "input":
+                return input(self.visit(func_args[0]))
             case "reverse":
                 return self.visit(func_args[0])[::-1]
             case "len":

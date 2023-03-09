@@ -27,7 +27,7 @@ class TypeChecker:
     @staticmethod
     def check_built_in_func_call(func_name, func_arg_types, func_token):
         match func_name:
-            case "reverse" | "len":
+            case "input" | "reverse" | "len":
                 if func_arg_types[0] != Token.K_STR:
                     TypeChecker.__error(
                         f'Function "{func_name}" must take a string argument',

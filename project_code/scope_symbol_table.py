@@ -29,6 +29,7 @@ class ScopeSymbolTable:
             "str": BuiltInTypeSymbol(Token.K_STR),
             "func_print": BuiltInFuncSymbol("print"),
             "func_println": BuiltInFuncSymbol("println"),
+            "func_input": BuiltInFuncSymbol("input", BuiltInTypeSymbol(Token.K_STR)),
             "func_reverse": BuiltInFuncSymbol(
                 "reverse", BuiltInTypeSymbol(Token.K_STR)
             ),

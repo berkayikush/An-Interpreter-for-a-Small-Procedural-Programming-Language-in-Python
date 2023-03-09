@@ -45,7 +45,10 @@ class SemanticAnalyzer(ASTNodeVisitor):
             self.__error(f'Function "{func_name}" not found', func_token)
 
         if isinstance(func_symbol, BuiltInFuncSymbol):
-            if func_name in ("reverse", "len") and len(func_args) != 1:
+            if (
+                func_name in ("input", "reverse", "len", "typeof")
+                and len(func_args) != 1
+            ):
                 self.__error(
                     f'Function "{func_name}" must take 1 argument',
                     func_token,
@@ -54,12 +57,6 @@ class SemanticAnalyzer(ASTNodeVisitor):
             if func_name == "pow" and len(func_args) != 2:
                 self.__error(
                     f'Function "{func_name}" must take 2 arguments',
-                    func_token,
-                )
-
-            if func_name == "typeof" and len(func_args) != 1:
-                self.__error(
-                    f'Function "{func_name}" must take 1 argument',
                     func_token,
                 )
 
