@@ -6,4 +6,4 @@ func(int) factorial(var(int) n = 0) {
     return n * factorial(n - 1);
 }
 
-println(factorial(5));
+println(factorial(toint(input("Enter a number: "))));

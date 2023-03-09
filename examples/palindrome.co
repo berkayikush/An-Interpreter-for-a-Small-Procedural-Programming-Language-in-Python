@@ -2,5 +2,10 @@ func(bool) is_palindrome(var(str) word) {
     return word == reverse(word);
 }
 
-println(is_palindrome("racecar"));
-println(is_palindrome("hello"));
+var(str) word = input("Enter a word: ");
+
+if (is_palindrome(word)) {
+    println(word + " is a palindrome");
+} else {
+    println(word + " is not a palindrome");
+}
