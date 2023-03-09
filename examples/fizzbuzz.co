@@ -1,0 +1,15 @@
+func(void) fizzbuzz(var(int) n) {
+    for (var(int) i from 1 to n) {
+        if (i % 15 == 0) {
+            println("FizzBuzz");
+        } elseif (i % 3 == 0) {
+            println("Fizz");
+        } elseif (i % 5 == 0) {
+            println("Buzz");
+        } else {
+            println(i);
+        }
+    }
+}
+
+fizzbuzz(15);

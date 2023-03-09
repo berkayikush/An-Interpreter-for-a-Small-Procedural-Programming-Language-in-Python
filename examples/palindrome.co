@@ -1,0 +1,6 @@
+func(bool) is_palindrome(var(str) word) {
+    return word == reverse(word);
+}
+
+println(is_palindrome("racecar"));
+println(is_palindrome("hello"));
