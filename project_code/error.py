@@ -14,7 +14,6 @@ class LexerError(Error):
 class ParserError(Error):
     UNEXPECTED_TOKEN = "Unexpected token"
     EXPECTED_TOKEN = "Expected token"
-    NO_SEMICOLON = "No semicolon at the end of statement"
 
 
 class SemanticError(Error):

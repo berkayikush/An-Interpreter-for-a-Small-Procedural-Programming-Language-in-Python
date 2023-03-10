@@ -397,7 +397,9 @@ class Interpreter(ASTNodeVisitor):
         pass
 
     def visitReturnStatementNode(self, ast_node):
-        self.__return_val = self.visit(ast_node.expr_node)
+        self.__return_val = (
+            self.visit(ast_node.expr_node) if ast_node.expr_node else None
+        )
         self.__return_flag = True
 
     def visitFuncDeclStatementNode(self, ast_node):

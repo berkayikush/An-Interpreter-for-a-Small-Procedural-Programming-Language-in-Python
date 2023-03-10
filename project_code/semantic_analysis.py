@@ -101,7 +101,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
         if func_symbol.type_ is None and not ast_node.is_statement:
             self.__error(
-                f'Function "{func_name}" does not return a value',
+                f'"void" function "{func_name}" not allowed here',
                 func_token,
             )
 
