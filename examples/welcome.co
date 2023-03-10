@@ -1,0 +1,8 @@
+func(void) welcome(var(str) firstName="John", var(str) lastName="Doe", var(str) message="Welcome, ") { 
+    println(message + firstName + " " + lastName); 
+}
+
+var(str) firstName = input("What is your first name? ");
+var(str) lastName = input("What is your last name? ");
+
+welcome(firstName, lastName);
