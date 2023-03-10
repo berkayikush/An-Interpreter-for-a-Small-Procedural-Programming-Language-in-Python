@@ -1,0 +1,15 @@
+func(int) checkNumOccurances(var(str) word, var(str) charToCheck) {
+    var(int) count = 0;
+
+    for (var(str) char from word) {
+        if (char == charToCheck) {
+            count += 1;
+        }
+    }
+
+    return count;
+}
+
+println(checkNumOccurances("hello", "l")); /* 2 */
+println(checkNumOccurances("hello", "o")); /* 1 */
+println(checkNumOccurances("hello", "z")); /* 0 */
