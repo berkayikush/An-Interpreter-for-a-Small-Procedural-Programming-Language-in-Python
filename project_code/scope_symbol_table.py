@@ -27,6 +27,7 @@ class ScopeSymbolTable:
             "float": BuiltInTypeSymbol(Token.K_FLOAT),
             "bool": BuiltInTypeSymbol(Token.K_BOOL),
             "str": BuiltInTypeSymbol(Token.K_STR),
+            
             "func_print": BuiltInFuncSymbol("print"),
             "func_println": BuiltInFuncSymbol("println"),
             "func_input": BuiltInFuncSymbol("input", BuiltInTypeSymbol(Token.K_STR)),
