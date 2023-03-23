@@ -28,7 +28,7 @@ class TypeChecker:
     def check_built_in_func_call(func_name, func_arg_types, func_token):
         match func_name:
             case "input":
-                if len(func_arg_types) != 0 and func_arg_types[0] != Token.K_STR:
+                if func_arg_types[0] != Token.K_STR:
                     TypeChecker.__error(
                         f'Function "{func_name}" must take a string argument',
                         func_token,
