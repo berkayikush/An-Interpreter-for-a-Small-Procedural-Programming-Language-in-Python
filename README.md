@@ -26,7 +26,7 @@ func_decl_statement := K_FUNC LEFT_PARENTHESIS return_type RIGHT_PARENTHESIS IDE
                               LEFT_PARENTHESIS (func_params)? RIGHT_PARENTHESIS
                               LEFT_CURLY_BRACKET statement_list RIGHT_CURLY_BRACKET
 func_params:= func_param (COMMA func_param)*
-func_param := K_VAR LEFT_PARENTHESIS var_type RIGHT_PARENTHESIS var_name (ASSIGN expr)?
+func_param := K_VAR LEFT_PARENTHESIS var_type RIGHT_PARENTHESIS var_name (ASSIGN logical_expr)?
 
 return_statement := K_RETURN (logical_expr)?
 return_type := K_INT | K_FLOAT | K_BOOL | K_STR | K_VOID
