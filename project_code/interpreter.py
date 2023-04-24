@@ -61,16 +61,22 @@ class Interpreter(ASTNodeVisitor):
         if func_name in Interpreter.BUILT_IN_FUNCS:
             return self.__call_builtin_func(func_name, func_args)
 
-        func_frame = copy.deepcopy(self.__defined_funcs[func_name]["stack frame"])
-        func_param_names = self.__defined_funcs[func_name]["param names"]
-        func_body = self.__defined_funcs[func_name]["body"]
+        try:
+            func_frame = copy.deepcopy(self.__defined_funcs[func_name]["stack frame"])
+            func_param_names = self.__defined_funcs[func_name]["param names"]
+            func_body = self.__defined_funcs[func_name]["body"]
 
-        for i, arg in enumerate(func_args):
-            func_frame[func_param_names[i]] = self.visit(arg)
+            for i, arg in enumerate(func_args):
+                func_frame[func_param_names[i]] = self.visit(arg)
 
-        Interpreter.PROGRAM_STACK.push(func_frame)
-        self.visit(func_body)
-        Interpreter.PROGRAM_STACK.pop()
+            Interpreter.PROGRAM_STACK.push(func_frame)
+            self.visit(func_body)
+            Interpreter.PROGRAM_STACK.pop()
+        except RecursionError as e:
+            self.__error(
+                e.args[0],
+                ast_node.token,
+            )
 
         if self.__return_flag:
             self.__return_flag = False
