@@ -503,7 +503,7 @@ class Parser:
 
     def __func_param(self):
         """
-        func_param := K_VAR LEFT_PARENTHESIS var_type RIGHT_PARENTHESIS var_name (ASSIGN expr)?
+        func_param := K_VAR LEFT_PARENTHESIS var_type RIGHT_PARENTHESIS var_name (ASSIGN logical_expr)?
         """
         self.__eat(Token.K_VAR)
         self.__eat(Token.LEFT_PARENTHESIS)
