@@ -335,6 +335,14 @@ class Interpreter(ASTNodeVisitor):
 
             self.visit(ast_node.statement_list_node)
 
+            if self.__break_flag:
+                self.__break_flag = False
+                break
+
+            if self.__continue_flag:
+                self.__continue_flag = False
+                continue
+
         Interpreter.PROGRAM_STACK.pop()
 
     def visitBreakStatementNode(self, ast_node):
