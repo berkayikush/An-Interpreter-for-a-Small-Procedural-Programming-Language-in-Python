@@ -66,7 +66,7 @@ class Parser:
 
     def __var_name(self):
         """
-        var_name = IDENTIFIER
+        var_name = IDENTIFIER ;
         """
         token = self.__curr_token
         self.__eat(Token.IDENTIFIER)
@@ -75,7 +75,7 @@ class Parser:
 
     def __func_call(self, is_statement=False):
         """
-        func_call = IDENTIFIER, LEFT_PARENTHESIS, [ logical_expr, { COMMA, logical_expr } ], RIGHT_PARENTHESIS
+        func_call = IDENTIFIER, LEFT_PARENTHESIS, [ logical_expr, { COMMA, logical_expr } ], RIGHT_PARENTHESIS ;
         """
         func_token = self.__curr_token
         func_name = self.__curr_token.val
@@ -98,7 +98,7 @@ class Parser:
 
     def __accessor(self):
         """
-        accessor = ( STR | var_name ), LEFT_SQUARE_BRACKET, logical_expr, [ COLON, logical_expr ], RIGHT_SQUARE_BRACKET
+        accessor = ( STR | var_name ), LEFT_SQUARE_BRACKET, logical_expr, [ COLON, logical_expr ], RIGHT_SQUARE_BRACKET ;
         """
         accessor_token = self.__curr_token
 
@@ -122,12 +122,12 @@ class Parser:
 
     def __factor(self):
         """
-        factor = ( INT | FLOAT | BOOL | STR ) | 
-                 LEFT_PARENTHESIS, logical_expr, RIGHT_PARENTHESIS | 
-                 ( PLUS | MINUS ), factor | 
-                 accessor | 
-                 func_call | 
-                 var_name
+        factor = ( INT | FLOAT | BOOL | STR ) 
+                 | LEFT_PARENTHESIS, logical_expr, RIGHT_PARENTHESIS 
+                 | ( PLUS | MINUS ), factor 
+                 | accessor 
+                 | func_call 
+                 | var_name ;
         """
         token = self.__curr_token
 
@@ -178,7 +178,7 @@ class Parser:
 
     def __term(self):
         """
-        term = factor, { ( MULTIPLICATION | INT_DIVISION | FLOAT_DIVISION | MODULO ), factor }
+        term = factor, { ( MULTIPLICATION | INT_DIVISION | FLOAT_DIVISION | MODULO ), factor } ;
         """
         return self.__binary_op(
             self.__factor,
@@ -198,9 +198,9 @@ class Parser:
 
     def __comparison_expr(self):
         """
-        comparison_expr = K_NOT, comparison_expr | 
-                          arithmetic_expr, { ( EQUALS | NOT_EQUALS | LESS_THAN | LESS_THAN_OR_EQUALS | 
-                                               GREATER_THAN | GREATER_THAN_OR_EQUALS ), arithmetic_expr }
+        comparison_expr = K_NOT, comparison_expr 
+                          | arithmetic_expr, { ( EQUALS | NOT_EQUALS | LESS_THAN | LESS_THAN_OR_EQUALS 
+                                                 | GREATER_THAN | GREATER_THAN_OR_EQUALS ), arithmetic_expr } ;
         """
         if self.__curr_token.type_ == Token.K_NOT:
             op_token = self.__curr_token
@@ -222,7 +222,7 @@ class Parser:
 
     def __logical_expr(self):
         """
-        logical_expr = comparison_expr, { ( K_AND | K_OR ), comparison_expr }
+        logical_expr = comparison_expr, { ( K_AND | K_OR ), comparison_expr } ;
         """
         return self.__binary_op(
             self.__comparison_expr,
@@ -238,8 +238,9 @@ class Parser:
 
     def __assign_statement(self):
         """
-        assignment_statement = ( var_name | accessor ), ( ASSIGN | PLUS_ASSIGN | MINUS_ASSIGN | MULTIPLICATION_ASSIGN | 
-                                                          FLOAT_DIVISION_ASSIGN | INT_DIVISION_ASSIGN | MODULO_ASSIGN ), logical_expr
+        assignment_statement = ( var_name | accessor ), ( ASSIGN | PLUS_ASSIGN | MINUS_ASSIGN | MULTIPLICATION_ASSIGN 
+                                                          | FLOAT_DIVISION_ASSIGN | INT_DIVISION_ASSIGN 
+                                                          | MODULO_ASSIGN ), logical_expr ;
         """
         left_node = (
             self.__accessor()
@@ -295,7 +296,7 @@ class Parser:
         """
         conditional_statement = K_IF, LEFT_PARENTHESIS, logical_expr, RIGHT_PARENTHESIS, LEFT_CURLY_BRACKET, statement_list, RIGHT_CURLY_BRACKET,
                                 { K_ELSEIF, LEFT_PARENTHESIS, logical_expr, RIGHT_PARENTHESIS, LEFT_CURLY_BRACKET, statement_list, RIGHT_CURLY_BRACKET },
-                                [ K_ELSE, LEFT_CURLY_BRACKET, statement_list, RIGHT_CURLY_BRACKET ]
+                                [ K_ELSE, LEFT_CURLY_BRACKET, statement_list, RIGHT_CURLY_BRACKET ] ;
         """
         if_cases = []
         else_case = None
@@ -336,7 +337,7 @@ class Parser:
     def __while_statement(self):
         """
         while_statement = K_WHILE, LEFT_PARENTHESIS, logical_expr, RIGHT_PARENTHESIS,
-                          LEFT_CURLY_BRACKET, statement_list, RIGHT_CURLY_BRACKET
+                          LEFT_CURLY_BRACKET, statement_list, RIGHT_CURLY_BRACKET ;
         """
         self.__eat(Token.K_WHILE)
         self.__eat(Token.LEFT_PARENTHESIS)
@@ -352,7 +353,7 @@ class Parser:
 
     def __break_statement(self):
         """
-        break_statement = K_BREAK
+        break_statement = K_BREAK ;
         """
         break_token = self.__curr_token
         self.__eat(Token.K_BREAK)
@@ -360,7 +361,7 @@ class Parser:
 
     def __continue_statement(self):
         """
-        continue_statement = K_CONTINUE
+        continue_statement = K_CONTINUE ;
         """
         continue_token = self.__curr_token
         self.__eat(Token.K_CONTINUE)
@@ -368,7 +369,7 @@ class Parser:
 
     def __range_expr(self, start_node):
         """
-        range_expr = logical_expr, K_TO, logical_expr, [ K_STEP, logical_expr ]
+        range_expr = logical_expr, K_TO, logical_expr, [ K_STEP, logical_expr ] ;
         """
         self.__eat(Token.K_TO)
 
@@ -385,7 +386,7 @@ class Parser:
         """
         for_statement = K_FOR, LEFT_PARENTHESIS, K_VAR, LEFT_PARENTHESIS, var_type, RIGHT_PARENTHESIS, var_name,
                         K_FROM, ( logical_expr | range_expr ), RIGHT_PARENTHESIS,
-                        LEFT_CURLY_BRACKET, statement_list, RIGHT_CURLY_BRACKET
+                        LEFT_CURLY_BRACKET, statement_list, RIGHT_CURLY_BRACKET ;
         """
         self.__eat(Token.K_FOR)
         self.__eat(Token.LEFT_PARENTHESIS)
@@ -413,7 +414,7 @@ class Parser:
 
     def __var_type(self):
         """
-        var_type = K_INT | K_FLOAT | K_BOOL | K_STR
+        var_type = K_INT | K_FLOAT | K_BOOL | K_STR ;
         """
         token = self.__curr_token
 
@@ -437,7 +438,7 @@ class Parser:
     def __var_decl_statement(self):
         """
         var_decl_statement = K_VAR, LEFT_PARENTHESIS, var_type, RIGHT_PARENTHESIS,
-                             var_name, [ ASSIGN, logical_expr ], { COMMA, var_name, [ ASSIGN, logical_expr ] }
+                             var_name, [ ASSIGN, logical_expr ], { COMMA, var_name, [ ASSIGN, logical_expr ] } ;
         """
         self.__eat(Token.K_VAR)
         self.__eat(Token.LEFT_PARENTHESIS)
@@ -477,7 +478,7 @@ class Parser:
 
     def __return_type(self):
         """
-        return_type = K_INT | K_FLOAT | K_BOOL | K_STR | K_VOID
+        return_type = K_INT | K_FLOAT | K_BOOL | K_STR | K_VOID ;
         """
         token = self.__curr_token
 
@@ -489,7 +490,7 @@ class Parser:
 
     def __return_statement(self):
         """
-        return_statement = K_RETURN, [ logical_expr ]
+        return_statement = K_RETURN, [ logical_expr ] ;
         """
         return_token = self.__curr_token
         self.__eat(Token.K_RETURN)
@@ -501,7 +502,7 @@ class Parser:
 
     def __func_param(self):
         """
-        func_param = K_VAR, LEFT_PARENTHESIS, var_type, RIGHT_PARENTHESIS, var_name, [ ASSIGN, logical_expr ]
+        func_param = K_VAR, LEFT_PARENTHESIS, var_type, RIGHT_PARENTHESIS, var_name, [ ASSIGN, logical_expr ] ;
         """
         self.__eat(Token.K_VAR)
         self.__eat(Token.LEFT_PARENTHESIS)
@@ -524,7 +525,7 @@ class Parser:
 
     def __func_params(self):
         """
-        func_params = func_param, { COMMA, func_param }
+        func_params = func_param, { COMMA, func_param } ;
         """
         func_params = [self.__func_param()]
 
@@ -538,7 +539,7 @@ class Parser:
         """
         func_decl_statement = K_FUNC, LEFT_PARENTHESIS, return_type, RIGHT_PARENTHESIS, IDENTIFIER,
                               LEFT_PARENTHESIS, [ func_params ], RIGHT_PARENTHESIS,
-                              LEFT_CURLY_BRACKET, statement_list, RIGHT_CURLY_BRACKET
+                              LEFT_CURLY_BRACKET, statement_list, RIGHT_CURLY_BRACKET ;
         """
         self.__eat(Token.K_FUNC)
         self.__eat(Token.LEFT_PARENTHESIS)
@@ -567,9 +568,9 @@ class Parser:
 
     def __statement(self):
         """
-        statement = func_decl_statement | return_statement, SEMICOLON | var_decl_statement, SEMICOLON | for_statement | 
-                    continue_statement, SEMICOLON | break_statement, SEMICOLON | while_loop_statement | 
-                    conditional_statement | func_call, SEMICOLON | assignment_statement, SEMICOLON | empty_statement
+        statement = func_decl_statement | return_statement, SEMICOLON | var_decl_statement, SEMICOLON | for_statement 
+                    | continue_statement, SEMICOLON | break_statement, SEMICOLON | while_loop_statement 
+                    | conditional_statement | func_call, SEMICOLON | assignment_statement, SEMICOLON | empty_statement ;
         """
         if self.__curr_token.type_ == Token.K_FUNC:
             return self.__func_decl_statement()
@@ -620,7 +621,7 @@ class Parser:
 
     def __statement_list(self):
         """
-        statement_list = statement, statement_list | empty_statement
+        statement_list = statement, statement_list | empty_statement ;
         """
         statement_list_node = StatementListNode()
         curr_statement = self.__statement()
@@ -634,6 +635,6 @@ class Parser:
 
     def __program(self):
         """
-        program = statement_list
+        program = statement_list ;
         """
         return ProgramNode(self.__statement_list())
