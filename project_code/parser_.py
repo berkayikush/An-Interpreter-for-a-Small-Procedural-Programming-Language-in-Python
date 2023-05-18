@@ -34,12 +34,12 @@ class Parser:
         self.__curr_token = self.__lexer.get_next_token()
 
     def parse(self):
-        ast_node = self.__program()
+        ast = self.__program()
 
         if self.__curr_token.type_ != Token.EOF:
             self.__error()
 
-        return ast_node
+        return ast
 
     def __eat(self, token_type):
         """
