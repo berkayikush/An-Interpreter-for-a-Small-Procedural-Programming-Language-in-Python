@@ -1,8 +1,7 @@
 import copy
 
-from .tokens import Token
 from .abstract_syntax_tree import VarNode, AccessNode, AssignmentStatementNode
-from .visit_ast_node import ASTNodeVisitor
+from .error import SemanticError
 from .scope_symbol_table import (
     ScopeSymbolTable,
     BuiltInTypeSymbol,
@@ -12,8 +11,9 @@ from .scope_symbol_table import (
     LoopSymbol,
     FuncSymbol,
 )
+from .tokens import Token
 from .type_checking import TypeChecker
-from .error import SemanticError
+from .visit_ast_node import ASTNodeVisitor
 
 
 class SemanticAnalyzer(ASTNodeVisitor):
@@ -51,8 +51,8 @@ class SemanticAnalyzer(ASTNodeVisitor):
                 )
 
             if (
-                func_name
-                in (
+                    func_name
+                    in (
                     "reverse",
                     "len",
                     "typeof",
@@ -60,8 +60,8 @@ class SemanticAnalyzer(ASTNodeVisitor):
                     "tofloat",
                     "tobool",
                     "tostr",
-                )
-                and len(func_args) != 1
+            )
+                    and len(func_args) != 1
             ):
                 self.__error(
                     f'Function "{func_name}" must take 1 argument',
@@ -87,7 +87,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
         if (num_args < num_non_default_params) or (num_args > num_params):
             self.__error(
                 f'Function "{func_name}" takes {num_non_default_params}'
-                f'{"" if num_params in (0, num_non_default_params) else " to "+str(num_params)} '
+                f'{"" if num_params in (0, num_non_default_params) else " to " + str(num_params)} '
                 f"positional arguments but {num_args} were given",
                 func_token,
             )
@@ -234,7 +234,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
         while curr_scope_symbol_table_cpy.scope_name != "global":
             if curr_scope_symbol_table_cpy.scope_name.startswith(
-                "for"
+                    "for"
             ) or curr_scope_symbol_table_cpy.scope_name.startswith("while"):
                 return True
 
@@ -300,10 +300,10 @@ class SemanticAnalyzer(ASTNodeVisitor):
             variable_symbol = VarSymbol(var_name, type_symbol)
 
             if (
-                self.__curr_scope_symbol_table.get_symbol(
-                    var_name, check_outer_scope=False
-                )
-                is not None
+                    self.__curr_scope_symbol_table.get_symbol(
+                        var_name, check_outer_scope=False
+                    )
+                    is not None
             ):
                 self.__error(
                     f'Variable "{var_name}" is declared again',
@@ -360,7 +360,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
             if isinstance(param.var_node, VarNode):
                 if isinstance(prev_param, AssignmentStatementNode):
                     self.__error(
-                        "Non-default argument follows default argument",
+                        "Non-default parameter follows default parameter",
                         param.var_node.token,
                     )
 
