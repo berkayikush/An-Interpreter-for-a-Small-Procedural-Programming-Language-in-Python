@@ -61,7 +61,7 @@ class Parser:
 
         raise ParserError(
             error_message
-            + f" on line: {self.__curr_token.line}, column: {self.__curr_token.col}",
+            + f" in line: {self.__curr_token.line}, column: {self.__curr_token.col}",
         )
 
     def __var_name(self):

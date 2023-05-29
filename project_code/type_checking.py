@@ -220,5 +220,5 @@ class TypeChecker:
     @staticmethod
     def __error(error_message, token):
         raise SemanticError(
-            error_message + f" on line: {token.line}, column: {token.col}",
+            error_message + f" in line: {token.line}, column: {token.col}",
         )

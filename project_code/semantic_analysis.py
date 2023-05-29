@@ -402,5 +402,5 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
     def __error(self, error_message, token):
         raise SemanticError(
-            error_message + f" on line: {token.line}, column: {token.col}",
+            error_message + f" in line: {token.line}, column: {token.col}",
         )

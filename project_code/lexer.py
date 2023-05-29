@@ -282,7 +282,7 @@ class Lexer:
 
     def __error(self):
         raise LexerError(
-            error_message=f'Error occured for "{self.__curr_char}" on line {self.__line}, column {self.__col}'
+            error_message=f'Error occured for "{self.__curr_char}" in line {self.__line}, column {self.__col}'
         )
 
     def __handle_multiline_comment(self):
