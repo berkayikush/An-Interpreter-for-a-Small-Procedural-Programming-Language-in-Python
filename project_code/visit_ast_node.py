@@ -3,7 +3,7 @@ class ASTNodeVisitor:
         execute = getattr(self, "visit" + type(ast_node).__name__, self.no_visit_method)
         return execute(ast_node)
 
-    def no_visit_method(self, node):
+    def no_visit(self, node):
         """
         Raise an exception if no visit method is implemented for a node.
         """
