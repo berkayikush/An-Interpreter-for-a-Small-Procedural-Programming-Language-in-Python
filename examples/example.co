@@ -1,0 +1,6 @@
+var(int) max = 1;
+
+for(var(int) max from 1 to 10) {
+    println(max);
+}
+println(max);
