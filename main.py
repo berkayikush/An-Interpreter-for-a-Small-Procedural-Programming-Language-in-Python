@@ -7,10 +7,10 @@ from project_code.error import (
     SemanticError,
     InterpreterError,
 )
+from project_code.interpreter import Interpreter
 from project_code.lexer import Lexer
 from project_code.parser_ import Parser
 from project_code.semantic_analysis import SemanticAnalyzer
-from project_code.interpreter import Interpreter
 
 
 def open_program_file():

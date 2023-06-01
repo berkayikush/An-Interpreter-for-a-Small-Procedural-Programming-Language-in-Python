@@ -2,9 +2,9 @@ import copy
 
 from .abstract_syntax_tree import VarNode, AccessNode, AssignmentStatementNode
 from .error import InterpreterError
+from .program_stack import ProgramStack, StackFrame
 from .tokens import Token
 from .visit_ast_node import ASTNodeVisitor
-from .program_stack import ProgramStack, StackFrame
 
 
 class Interpreter(ASTNodeVisitor):
@@ -155,7 +155,7 @@ class Interpreter(ASTNodeVisitor):
     def __check_start_index(self, start_index, end_index, accessor_len, accessor_token):
         if abs(start_index) >= accessor_len:
             self.__error(
-                f'Index out of range: "[{start_index}{":"+str(end_index) if end_index is not None else ""}]"',
+                f'Index out of range: "[{start_index}{":" + str(end_index) if end_index is not None else ""}]"',
                 accessor_token,
             )
 

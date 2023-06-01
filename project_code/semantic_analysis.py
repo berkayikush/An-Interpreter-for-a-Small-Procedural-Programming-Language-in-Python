@@ -51,8 +51,8 @@ class SemanticAnalyzer(ASTNodeVisitor):
                 )
 
             if (
-                    func_name
-                    in (
+                func_name
+                in (
                     "reverse",
                     "len",
                     "typeof",
@@ -60,8 +60,8 @@ class SemanticAnalyzer(ASTNodeVisitor):
                     "tofloat",
                     "tobool",
                     "tostr",
-            )
-                    and len(func_args) != 1
+                )
+                and len(func_args) != 1
             ):
                 self.__error(
                     f'Function "{func_name}" must take 1 argument',
@@ -234,7 +234,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
         while curr_scope_symbol_table_cpy.scope_name != "global":
             if curr_scope_symbol_table_cpy.scope_name.startswith(
-                    "for"
+                "for"
             ) or curr_scope_symbol_table_cpy.scope_name.startswith("while"):
                 return True
 
@@ -300,10 +300,10 @@ class SemanticAnalyzer(ASTNodeVisitor):
             variable_symbol = VarSymbol(var_name, type_symbol)
 
             if (
-                    self.__curr_scope_symbol_table.get_symbol(
-                        var_name, check_outer_scope=False
-                    )
-                    is not None
+                self.__curr_scope_symbol_table.get_symbol(
+                    var_name, check_outer_scope=False
+                )
+                is not None
             ):
                 self.__error(
                     f'Variable "{var_name}" is declared again',

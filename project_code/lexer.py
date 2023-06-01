@@ -1,5 +1,5 @@
-from .tokens import Token
 from .error import LexerError
+from .tokens import Token
 
 
 class Lexer:

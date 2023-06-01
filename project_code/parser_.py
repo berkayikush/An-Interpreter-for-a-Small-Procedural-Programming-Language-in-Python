@@ -1,4 +1,3 @@
-from .tokens import Token
 from .abstract_syntax_tree import (
     VarNode,
     AccessNode,
@@ -26,6 +25,7 @@ from .abstract_syntax_tree import (
     ProgramNode,
 )
 from .error import ParserError
+from .tokens import Token
 
 
 class Parser:
@@ -122,11 +122,11 @@ class Parser:
 
     def __factor(self):
         """
-        factor = ( INT | FLOAT | BOOL | STR ) 
-                 | LEFT_PARENTHESIS, logical_expr, RIGHT_PARENTHESIS 
-                 | ( PLUS | MINUS ), factor 
-                 | accessor 
-                 | func_call 
+        factor = ( INT | FLOAT | BOOL | STR )
+                 | LEFT_PARENTHESIS, logical_expr, RIGHT_PARENTHESIS
+                 | ( PLUS | MINUS ), factor
+                 | accessor
+                 | func_call
                  | var_name ;
         """
         token = self.__curr_token
@@ -198,8 +198,8 @@ class Parser:
 
     def __comparison_expr(self):
         """
-        comparison_expr = K_NOT, comparison_expr 
-                          | arithmetic_expr, { ( EQUALS | NOT_EQUALS | LESS_THAN | LESS_THAN_OR_EQUALS 
+        comparison_expr = K_NOT, comparison_expr
+                          | arithmetic_expr, { ( EQUALS | NOT_EQUALS | LESS_THAN | LESS_THAN_OR_EQUALS
                                                  | GREATER_THAN | GREATER_THAN_OR_EQUALS ), arithmetic_expr } ;
         """
         if self.__curr_token.type_ == Token.K_NOT:
@@ -238,8 +238,8 @@ class Parser:
 
     def __assign_statement(self):
         """
-        assignment_statement = ( var_name | accessor ), ( ASSIGN | PLUS_ASSIGN | MINUS_ASSIGN | MULTIPLICATION_ASSIGN 
-                                                          | FLOAT_DIVISION_ASSIGN | INT_DIVISION_ASSIGN 
+        assignment_statement = ( var_name | accessor ), ( ASSIGN | PLUS_ASSIGN | MINUS_ASSIGN | MULTIPLICATION_ASSIGN
+                                                          | FLOAT_DIVISION_ASSIGN | INT_DIVISION_ASSIGN
                                                           | MODULO_ASSIGN ), logical_expr ;
         """
         left_node = (
@@ -568,8 +568,8 @@ class Parser:
 
     def __statement(self):
         """
-        statement = func_decl_statement | return_statement, SEMICOLON | var_decl_statement, SEMICOLON | for_statement 
-                    | continue_statement, SEMICOLON | break_statement, SEMICOLON | while_loop_statement 
+        statement = func_decl_statement | return_statement, SEMICOLON | var_decl_statement, SEMICOLON | for_statement
+                    | continue_statement, SEMICOLON | break_statement, SEMICOLON | while_loop_statement
                     | conditional_statement | func_call, SEMICOLON | assignment_statement, SEMICOLON | empty_statement ;
         """
         if self.__curr_token.type_ == Token.K_FUNC:
