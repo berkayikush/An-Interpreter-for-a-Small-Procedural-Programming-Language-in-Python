@@ -47,7 +47,7 @@ class TypeChecker:
                     Token.K_INT,
                 ) or func_arg_types[1] not in (Token.K_FLOAT, Token.K_INT):
                     TypeChecker.__error(
-                        f'Function "{func_name}" must take two float arguments',
+                        f'Function "{func_name}" must take two ints or flats arguments',
                         func_token,
                     )
 
