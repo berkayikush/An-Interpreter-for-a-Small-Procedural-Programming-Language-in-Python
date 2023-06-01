@@ -45,37 +45,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
             self.__error(f'Function "{func_name}" not found', func_token)
 
         if isinstance(func_symbol, BuiltInFuncSymbol):
-            if func_name == "input" and len(func_args) not in (0, 1):
-                self.__error(
-                    f'Function "{func_name}" must take 0 or 1 argument', func_token
-                )
-
-            if (
-                func_name
-                in (
-                    "reverse",
-                    "len",
-                    "typeof",
-                    "toint",
-                    "tofloat",
-                    "tobool",
-                    "tostr",
-                )
-                and len(func_args) != 1
-            ):
-                self.__error(
-                    f'Function "{func_name}" must take 1 argument',
-                    func_token,
-                )
-
-            if func_name == "pow" and len(func_args) != 2:
-                self.__error(
-                    f'Function "{func_name}" must take 2 arguments',
-                    func_token,
-                )
-
-            func_arg_types = [self.visit(arg).name for arg in func_args]
-            TypeChecker.check_built_in_func_call(func_name, func_arg_types, func_token)
+            self.__handle_built_in_funcs(func_name, func_args, func_token)
             return func_symbol.type_
 
         num_args = len(func_args)
@@ -106,6 +76,25 @@ class SemanticAnalyzer(ASTNodeVisitor):
             )
 
         return func_symbol.type_
+
+    def __handle_built_in_funcs(self, func_name, func_args, func_token):
+        if func_name == "input" and len(func_args) not in (0, 1):
+            self.__error(
+                f'Function "{func_name}" must take 0 or 1 argument', func_token
+            )
+
+        if (
+            func_name
+            in ("reverse", "len", "typeof", "toint", "tofloat", "tobool", "tostr")
+            and len(func_args) != 1
+        ):
+            self.__error(f'Function "{func_name}" must take 1 argument', func_token)
+
+        if func_name == "pow" and len(func_args) != 2:
+            self.__error(f'Function "{func_name}" must take 2 arguments', func_token)
+
+        func_arg_types = [self.visit(arg).name for arg in func_args]
+        TypeChecker.check_built_in_func_call(func_name, func_arg_types, func_token)
 
     def visitAccessNode(self, ast_node):
         accessor_type = self.visit(ast_node.accessor_node).name
