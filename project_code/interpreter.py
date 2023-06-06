@@ -1,5 +1,3 @@
-import copy
-
 from .abstract_syntax_tree import VarNode, AccessNode, AssignmentStatementNode
 from .error import InterpreterError
 from .program_stack import ProgramStack, StackFrame
