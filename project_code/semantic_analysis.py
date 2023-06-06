@@ -391,6 +391,10 @@ class SemanticAnalyzer(ASTNodeVisitor):
         for statement in ast_node.statements:
             self.visit(statement)
 
+    def visitProgramNode(self, ast_node):
+        self.visit(ast_node.statement_list_node)
+        self.__curr_scope_symbol_table = self.__curr_scope_symbol_table.outer_scope
+
     def __error(self, error_message, token):
         raise SemanticError(
             error_message + f" in line: {token.line}, column: {token.col}",
