@@ -1,18 +1,18 @@
 class ProgramStack:
     def __init__(self):
-        self.stack = []
+        self.__stack = []
 
     def push(self, frame):
-        self.stack.append(frame)
+        self.__stack.append(frame)
 
     def pop(self):
-        return self.stack.pop()
+        return self.__stack.pop()
 
     def peek(self):
-        return self.stack[-1]
+        return self.__stack[-1]
 
     def size(self):
-        return len(self.stack)
+        return len(self.__stack)
 
 
 class StackFrame:
