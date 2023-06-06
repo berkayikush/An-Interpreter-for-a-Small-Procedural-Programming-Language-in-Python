@@ -31,7 +31,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
         variable_symbol = self.__curr_scope_symbol_table.get_symbol(var_name)
 
         if variable_symbol is None:
-            self.__error(f'Identifier "{var_name}" not found', ast_node.token)
+            self.__error(f'Identifier "{var_name}" is not found', ast_node.token)
 
         return variable_symbol.type_
 
@@ -42,7 +42,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
         func_symbol = self.__curr_scope_symbol_table.get_symbol(f"func_{func_name}")
 
         if func_symbol is None:
-            self.__error(f'Function "{func_name}" not found', func_token)
+            self.__error(f'Function "{func_name}" is not found', func_token)
 
         if isinstance(func_symbol, BuiltInFuncSymbol):
             self.__handle_built_in_funcs(func_name, func_args, func_token)
@@ -71,7 +71,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
         if func_symbol.type_ is None and not ast_node.is_statement:
             self.__error(
-                f'"void" function "{func_name}" not allowed here',
+                f'"void" function "{func_name}" is not allowed',
                 func_token,
             )
 
@@ -212,11 +212,17 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
     def visitBreakStatementNode(self, ast_node):
         if not self.__is_in_loop():
-            self.__error("Break statement outside of loop", ast_node.token)
+            self.__error(
+                "The break statement cannot be outside of a loop construct like",
+                ast_node.token,
+            )
 
     def visitContinueStatementNode(self, ast_node):
         if not self.__is_in_loop():
-            self.__error("Continue statement outside of loop", ast_node.token)
+            self.__error(
+                "The continue statement cannot be outside of a loop construct like",
+                ast_node.token,
+            )
 
     def __is_in_loop(self):
         curr_scope_symbol_table_cpy = copy.copy(self.__curr_scope_symbol_table)
@@ -384,10 +390,6 @@ class SemanticAnalyzer(ASTNodeVisitor):
     def visitStatementListNode(self, ast_node):
         for statement in ast_node.statements:
             self.visit(statement)
-
-    def visitProgramNode(self, ast_node):
-        self.visit(ast_node.statement_list_node)
-        self.__curr_scope_symbol_table = self.__curr_scope_symbol_table.outer_scope
 
     def __error(self, error_message, token):
         raise SemanticError(

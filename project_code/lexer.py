@@ -104,7 +104,7 @@ class Lexer:
 
     def __check_next_char(self, offset=1):
         """
-        Will be useful and used for instance, differentiating between "=", and "==".
+        Used for differentiating between symbols, such as "=", and "==".
         """
         next_char_at = self.__char_pos + offset
 
@@ -282,7 +282,7 @@ class Lexer:
 
     def __error(self):
         raise LexerError(
-            error_message=f'Error occured for "{self.__curr_char}" in line {self.__line}, column {self.__col}'
+            error_message=f'An error occured for "{self.__curr_char}" in line {self.__line}, column {self.__col}'
         )
 
     def __handle_multiline_comment(self):

@@ -42,24 +42,26 @@ def main():
     try:
         parser = Parser(lexer)
         tree = parser.parse()
-    except (LexerError, ParserError) as error:
-        print(error.message)
+    except (LexerError, ParserError) as l_p_error:
+        print(l_p_error.message)
         sys.exit(1)
 
-    semantic_analyzer = SemanticAnalyzer()
-
     try:
+        semantic_analyzer = SemanticAnalyzer()
         semantic_analyzer.visit(tree)
-    except SemanticError as error:
-        print(error.message)
+    except SemanticError as s_error:
+        print(s_error.message)
+        sys.exit(1)
+    except NotImplementedError as n_error:
+        print(n_error)
         sys.exit(1)
 
     interpreter = Interpreter(tree)
 
     try:
         interpreter.interpret()
-    except InterpreterError as error:
-        print(error.message)
+    except InterpreterError as i_error:
+        print(i_error.message)
         sys.exit(1)
 
 

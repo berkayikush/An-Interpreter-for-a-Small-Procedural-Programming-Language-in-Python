@@ -7,4 +7,6 @@ class ASTNodeVisitor:
         """
         Raise an exception if no visit method is implemented for a node.
         """
-        raise Exception(f"No visit_{type(ast_node).__name__} method.")
+        raise NotImplementedError(
+            f'NotImplementedError: "visit{type(ast_node).__name__}" not implemented.'
+        )

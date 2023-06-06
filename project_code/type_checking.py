@@ -12,7 +12,7 @@ class TypeChecker:
     def check_accessor(accessor_type, accessor_token):
         if accessor_type != Token.K_STR:
             TypeChecker.__error(
-                f'Type "{accessor_type}" cannot be an accessor',
+                f'"{accessor_type}" type cannot be an accessor',
                 accessor_token,
             )
 
@@ -30,14 +30,14 @@ class TypeChecker:
             case "input":
                 if func_arg_types[0] != Token.K_STR:
                     TypeChecker.__error(
-                        f'Function "{func_name}" must take a string argument',
+                        f'The function named "{func_name}" can only accept a string argument',
                         func_token,
                     )
 
             case "reverse" | "len":
                 if func_arg_types[0] != Token.K_STR:
                     TypeChecker.__error(
-                        f'Function "{func_name}" must take a string argument',
+                        f'The function named "{func_name}" can only accept a string argument',
                         func_token,
                     )
 
@@ -47,7 +47,7 @@ class TypeChecker:
                     Token.K_INT,
                 ) or func_arg_types[1] not in (Token.K_FLOAT, Token.K_INT):
                     TypeChecker.__error(
-                        f'Function "{func_name}" must take two ints or flats arguments',
+                        f'The function named "{func_name}" can only accept integer or float values as arguments',
                         func_token,
                     )
 
@@ -56,7 +56,7 @@ class TypeChecker:
         if op_token.type_ == Token.K_NOT:
             if child_node_type != Token.K_BOOL:
                 TypeChecker.__error(
-                    f'Operation "{op_token.val}" is not allowed on type "{child_node_type}"',
+                    f'The operator "{op_token.val}" cannot be used with the type "{child_node_type}"',
                     op_token,
                 )
 
@@ -66,7 +66,7 @@ class TypeChecker:
             match child_node_type:
                 case Token.K_STR | Token.K_BOOL:
                     TypeChecker.__error(
-                        f'Operation "{op_token.val}" is not allowed on type "{child_node_type}"',
+                        f'The operator "{op_token.val}" cannot be used with the type "{child_node_type}"',
                         op_token,
                     )
 
@@ -93,7 +93,7 @@ class TypeChecker:
         if op_token.type_ in (Token.EQUALS, Token.NOT_EQUALS):
             if left_node_type != right_node_type:
                 TypeChecker.__error(
-                    f'Cannot compare "{left_node_type}" and "{right_node_type}"',
+                    f'The types of "{left_node_type}" and "{right_node_type}" cannot be compared',
                     op_token,
                 )
 
@@ -112,7 +112,7 @@ class TypeChecker:
         if op_token.type_ in (Token.K_AND, Token.K_OR):
             if Token.K_BOOL not in (left_node_type, right_node_type):
                 TypeChecker.__error(
-                    f'Operation "{op_token.val}" is not allowed between "{left_node_type}" and "{right_node_type}"',
+                    f'"{op_token.val}" operator cannot be used with "{left_node_type}" and "{right_node_type}"',
                     op_token,
                 )
 
@@ -137,16 +137,19 @@ class TypeChecker:
     def check_condition(condition_type, condition_token):
         if condition_type != Token.K_BOOL:
             TypeChecker.__error(
-                f'Condition must be "bool", not "{condition_type}"', condition_token
+                f'The Condition must evaluate to "bool", not "{condition_type}"',
+                condition_token,
             )
 
     @staticmethod
     def check_range_expr(start_type, end_type, step_type, range_token):
         if (start_type != Token.K_INT) or (end_type != Token.K_INT):
-            TypeChecker.__error('Start and end of range must be "int"', range_token)
+            TypeChecker.__error(
+                'The start and the end of the range must be "int"', range_token
+            )
 
         if step_type is not None and step_type != Token.K_INT:
-            TypeChecker.__error('Step of range must be "int"', range_token)
+            TypeChecker.__error('"step" of the range must be "int"', range_token)
 
         return RangeSymbol()
 
@@ -180,13 +183,13 @@ class TypeChecker:
                     return BuiltInTypeSymbol(Token.K_STR)
 
                 TypeChecker.__error(
-                    f'Operation "{op_token.val}" is not allowed between "{left_node_type}" and "{right_node_type}"',
+                    f'"{op_token.val}" operator cannot be used with "{left_node_type}" and "{right_node_type}"',
                     op_token,
                 )
 
             case (Token.K_BOOL, _) | (_, Token.K_BOOL):
                 TypeChecker.__error(
-                    f'Operation "{op_token.val}" is not allowed between "{left_node_type}" and "{right_node_type}"',
+                    f'"{op_token.val}" operator cannot be used with "{left_node_type}" and "{right_node_type}"',
                     op_token,
                 )
 
@@ -210,7 +213,7 @@ class TypeChecker:
                 Token.K_BOOL,
             ):
                 TypeChecker.__error(
-                    f'Operation "{op_token.val}" is not allowed between "{left_node_type}" and "{right_node_type}"',
+                    f'"{op_token.val}" operator cannot be used with "{left_node_type}" and "{right_node_type}"',
                     op_token,
                 )
 

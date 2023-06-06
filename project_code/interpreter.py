@@ -48,7 +48,7 @@ class Interpreter(ASTNodeVisitor):
 
         if var_val is None:
             self.__error(
-                f'Variable "{var_name}" is not defined',
+                f'The variable "{var_name}" is not defined',
                 ast_node.token,
             )
 
@@ -133,7 +133,7 @@ class Interpreter(ASTNodeVisitor):
 
     def visitAccessNode(self, ast_node):
         """
-        Followed the Python slicing rules.
+        Followed the slicing rules of Python.
         """
         accessor = self.visit(ast_node.accessor_node)
         accessor_len = len(accessor)
@@ -155,7 +155,7 @@ class Interpreter(ASTNodeVisitor):
     def __check_start_index(self, start_index, end_index, accessor_len, accessor_token):
         if abs(start_index) >= accessor_len:
             self.__error(
-                f'Index out of range: "[{start_index}{":" + str(end_index) if end_index is not None else ""}]"',
+                f'The index is out of range: "[{start_index}{":" + str(end_index) if end_index is not None else ""}]"',
                 accessor_token,
             )
 
