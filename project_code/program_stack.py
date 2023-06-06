@@ -1,6 +1,3 @@
-import copy
-
-
 class ProgramStack:
     def __init__(self):
         self.stack = []
