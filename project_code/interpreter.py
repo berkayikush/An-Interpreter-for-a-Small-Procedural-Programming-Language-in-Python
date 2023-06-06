@@ -26,7 +26,6 @@ class Interpreter(ASTNodeVisitor):
     def __init__(self, ast):
         self.__ast = ast
         self.__zero_token = None  # Used for reporting errors.
-        self.__defined_funcs = {}
 
         self.__return_flag = False
         self.__return_val = None
@@ -44,7 +43,7 @@ class Interpreter(ASTNodeVisitor):
         curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
 
         var_name = ast_node.val
-        var_val = curr_stack_frame.get(var_name)
+        var_val = curr_stack_frame.get_var(var_name)
 
         if var_val is None:
             self.__error(
@@ -52,7 +51,7 @@ class Interpreter(ASTNodeVisitor):
                 ast_node.token,
             )
 
-        return curr_stack_frame.get(ast_node.val)
+        return curr_stack_frame.get_var(ast_node.val)
 
     def visitFuncCallNode(self, ast_node):
         func_name = ast_node.func_name
@@ -62,12 +61,14 @@ class Interpreter(ASTNodeVisitor):
             return self.__call_builtin_func(func_name, func_args)
 
         try:
-            func_frame = copy.deepcopy(self.__defined_funcs[func_name]["stack frame"])
-            func_param_names = self.__defined_funcs[func_name]["param names"]
-            func_body = self.__defined_funcs[func_name]["body"]
+            (
+                func_frame,
+                func_param_names,
+                func_body,
+            ) = Interpreter.PROGRAM_STACK.peek().get_func(func_name)
 
             for i, arg in enumerate(func_args):
-                func_frame[func_param_names[i]] = self.visit(arg)
+                func_frame.variables[func_param_names[i]] = self.visit(arg)
 
             Interpreter.PROGRAM_STACK.push(func_frame)
             self.visit(func_body)
@@ -250,7 +251,7 @@ class Interpreter(ASTNodeVisitor):
             if not isinstance(access_node.accessor_node, VarNode):
                 return
 
-            accessor = curr_stack_frame.get(access_node.accessor_node.val)
+            accessor = curr_stack_frame.get_var(access_node.accessor_node.val)
             accessor_len = len(accessor)
 
             start_index = self.visit(access_node.start_index_node)
@@ -279,7 +280,7 @@ class Interpreter(ASTNodeVisitor):
             left_node_val = ast_node.left_node.val
             right_node_val = self.visit(ast_node.right_node)
 
-        curr_stack_frame.set(left_node_val, val=right_node_val)
+        curr_stack_frame.set_var(left_node_val, val=right_node_val)
 
     def visitConditionalStatementNode(self, ast_node):
         for i, (condition, statement) in enumerate(ast_node.if_cases):
@@ -380,7 +381,7 @@ class Interpreter(ASTNodeVisitor):
         curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
 
         for val in iterable:
-            curr_stack_frame.set(var_node.val, val=val)
+            curr_stack_frame.set_var(var_node.val, val=val)
             self.visit(ast_node.statement_list_node)
 
             if self.__break_flag:
@@ -402,10 +403,10 @@ class Interpreter(ASTNodeVisitor):
         for variable in ast_node.variables:
             if isinstance(variable, AssignmentStatementNode):
                 var_val = self.visit(variable.right_node)
-                curr_stack_frame[variable.left_node.val] = var_val
+                curr_stack_frame.variables[variable.left_node.val] = var_val
 
             else:
-                curr_stack_frame[variable.val] = None
+                curr_stack_frame.variables[variable.val] = None
 
     def visitReturnTypeNode(self, ast_node):
         pass
@@ -418,28 +419,29 @@ class Interpreter(ASTNodeVisitor):
 
     def visitFuncDeclStatementNode(self, ast_node):
         func_name = ast_node.name
+        curr_stack_frame = Interpreter.PROGRAM_STACK.peek()
+
         func_frame = StackFrame(
             name=func_name,
             type_=StackFrame.FUNC,
-            scope_level=Interpreter.PROGRAM_STACK.peek().scope_level + 1,
-            outer_scope=Interpreter.PROGRAM_STACK.peek(),
+            scope_level=curr_stack_frame.scope_level + 1,
+            outer_scope=curr_stack_frame,
         )
-
         param_names = []
 
         for param in ast_node.params:
             if isinstance(param.var_node, VarNode):
                 param_name = param.var_node.val
-                func_frame[param_name] = None
+                func_frame.variables[param_name] = None
             else:
                 param_name = param.var_node.left_node.val
                 param_val = self.visit(param.var_node.right_node)
 
-                func_frame[param_name] = param_val
+                func_frame.variables[param_name] = param_val
 
             param_names.append(param_name)
 
-        self.__defined_funcs[func_name] = {
+        curr_stack_frame.functions[func_name] = {
             "stack frame": func_frame,
             "param names": param_names,
             "body": ast_node.body,

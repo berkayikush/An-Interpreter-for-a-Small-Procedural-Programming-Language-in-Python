@@ -1,3 +1,6 @@
+import copy
+
+
 class ProgramStack:
     def __init__(self):
         self.stack = []
@@ -30,8 +33,10 @@ class StackFrame:
         self.__type_ = type_
 
         self.__scope_level = scope_level
-        self.__variables = {}
         self.__outer_scope = outer_scope
+
+        self.__variables = {}
+        self.__functions = {}
 
     @property
     def scope_level(self):
@@ -41,24 +46,45 @@ class StackFrame:
     def outer_scope(self):
         return self.__outer_scope
 
-    def get(self, key, default=None):
-        if self.__check_variable(key):
+    @property
+    def variables(self):
+        return self.__variables
+
+    @property
+    def functions(self):
+        return self.__functions
+
+    def get_var(self, key, default=None):
+        if self.__check_var(key):
             return self.__variables[key]
 
         if self.__outer_scope is not None:
-            return self.__outer_scope.get(key)
+            return self.__outer_scope.get_var(key)
 
         return default
 
-    def __check_variable(self, variable):
-        return variable in self.__variables
+    def get_func(self, key, default=None):
+        if self.__check_func(key):
+            return (
+                self.__functions[key]["stack frame"],
+                self.__functions[key]["param names"],
+                self.__functions[key]["body"],
+            )
 
-    def set(self, key, val):
-        if self.__check_variable(key):
+        if self.__outer_scope is not None:
+            return self.__outer_scope.get_func(key)
+
+        return default
+
+    def set_var(self, key, val):
+        if self.__check_var(key):
             self.__variables[key] = val
             return
 
-        self.__outer_scope.set(key, val)
+        self.__outer_scope.set_var(key, val)
 
-    def __setitem__(self, key, val):
-        self.__variables[key] = val
+    def __check_var(self, variable):
+        return variable in self.__variables
+
+    def __check_func(self, function):
+        return function in self.__functions
