@@ -31,7 +31,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
         variable_symbol = self.__curr_scope_symbol_table.get_symbol(var_name)
 
         if variable_symbol is None:
-            self.__error(f'Identifier "{var_name}" is not found', ast_node.token)
+            self.__error(f'Variable "{var_name}" is not found', ast_node.token)
 
         return variable_symbol.type_
 
@@ -292,20 +292,9 @@ class SemanticAnalyzer(ASTNodeVisitor):
                 var_name = variable.left_node.val
                 var_token = variable.left_node.token
 
-            variable_symbol = VarSymbol(var_name, type_symbol)
-
-            if (
-                self.__curr_scope_symbol_table.get_symbol(
-                    var_name, check_outer_scope=False
-                )
-                is not None
-            ):
-                self.__error(
-                    f'Variable "{var_name}" is declared again',
-                    var_token,
-                )
-
-            self.__curr_scope_symbol_table.add_symbol(variable_symbol)
+            var_symbol = VarSymbol(var_name, type_symbol)
+            self.__has_identfier_declared(var_name, var_token)
+            self.__curr_scope_symbol_table.add_symbol(var_symbol)
 
     def visitReturnStatementNode(self, ast_node):
         return_type = self.visit(ast_node.expr_node) if ast_node.expr_node else None
@@ -328,12 +317,33 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
         self.__error("Return statement outside function", ast_node.token)
 
-    def visitFuncDeclStatementNode(self, ast_node):
-        if self.__curr_scope_symbol_table.get_symbol("func_" + ast_node.name):
+    def __has_identfier_declared(self, identifier, identifier_token):
+        check_builtin_func = self.__curr_scope_symbol_table.get_symbol(
+            "func_" + identifier, check_outer_scope=True
+        )
+        check_func = self.__curr_scope_symbol_table.get_symbol(
+            "func_" + identifier, check_outer_scope=False
+        )
+        check_var = self.__curr_scope_symbol_table.get_symbol(
+            identifier, check_outer_scope=False
+        )
+
+        if check_builtin_func is not None and isinstance(
+            check_builtin_func, BuiltInFuncSymbol
+        ):
             self.__error(
-                f'Function "{ast_node.name}" is declared again', ast_node.token
+                "A built-in function name cannot be used to declare neither nor variables nor functions",
+                identifier_token,
             )
 
+        if check_func is not None or check_var is not None:
+            self.__error(
+                f'Identifier "{identifier}" has already been declared',
+                identifier_token,
+            )
+
+    def visitFuncDeclStatementNode(self, ast_node):
+        self.__has_identfier_declared(ast_node.name, ast_node.token)
         return_type_symbol = self.__curr_scope_symbol_table.get_symbol(
             ast_node.return_type_node.val
         )
