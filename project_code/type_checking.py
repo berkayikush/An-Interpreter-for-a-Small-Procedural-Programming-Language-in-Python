@@ -1,5 +1,5 @@
 from .tokens import Token
-from .scope_symbol_table import BuiltInTypeSymbol, RangeSymbol
+from .symbol_table import BuiltInTypeSymbol, RangeSymbol
 from .error import SemanticError
 
 

@@ -2,8 +2,8 @@ import copy
 
 from .abstract_syntax_tree import VarNode, AccessNode, AssignmentStatementNode
 from .error import SemanticError
-from .scope_symbol_table import (
-    ScopeSymbolTable,
+from .symbol_table import (
+    SymbolTable,
     BuiltInTypeSymbol,
     BuiltInFuncSymbol,
     VarSymbol,
@@ -18,17 +18,17 @@ from .visit_ast_node import ASTNodeVisitor
 
 class SemanticAnalyzer(ASTNodeVisitor):
     def __init__(self):
-        self.__curr_scope_symbol_table = ScopeSymbolTable(
+        self.__curr_symbol_table = SymbolTable(
             scope_name="global", scope_level=1, outer_scope=None
         )
-        self.__curr_scope_symbol_table.add_built_in_symbols()
+        self.__curr_symbol_table.add_built_in_symbols()
 
         self.__return_flag = False
         self.is_func_call_statement = False
 
     def visitVarNode(self, ast_node):
         var_name = ast_node.val
-        variable_symbol = self.__curr_scope_symbol_table.get_symbol(var_name)
+        variable_symbol = self.__curr_symbol_table.get_symbol(var_name)
 
         if variable_symbol is None:
             self.__error(f'Variable "{var_name}" is not found', ast_node.token)
@@ -39,7 +39,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
         func_name = ast_node.func_name
         func_token = ast_node.token
         func_args = ast_node.args
-        func_symbol = self.__curr_scope_symbol_table.get_symbol(f"func_{func_name}")
+        func_symbol = self.__curr_symbol_table.get_symbol(f"func_{func_name}")
 
         if func_symbol is None:
             self.__error(f'Function "{func_name}" is not found', func_token)
@@ -158,24 +158,24 @@ class SemanticAnalyzer(ASTNodeVisitor):
         self.__add_conditional_symbols_to_current_scope(ast_node, symbol_names)
 
         for i, (_, statement_list_node) in enumerate(ast_node.if_cases):
-            self.__curr_scope_symbol_table = ScopeSymbolTable(
+            self.__curr_symbol_table = SymbolTable(
                 scope_name=symbol_names[i],
-                scope_level=self.__curr_scope_symbol_table.scope_level + 1,
-                outer_scope=self.__curr_scope_symbol_table,
+                scope_level=self.__curr_symbol_table.scope_level + 1,
+                outer_scope=self.__curr_symbol_table,
             )
 
             self.visit(statement_list_node)
-            self.__curr_scope_symbol_table = self.__curr_scope_symbol_table.outer_scope
+            self.__curr_symbol_table = self.__curr_symbol_table.outer_scope
 
         if ast_node.else_case is not None:
-            self.__curr_scope_symbol_table = ScopeSymbolTable(
+            self.__curr_symbol_table = SymbolTable(
                 scope_name=symbol_names[-1],
-                scope_level=self.__curr_scope_symbol_table.scope_level + 1,
-                outer_scope=self.__curr_scope_symbol_table,
+                scope_level=self.__curr_symbol_table.scope_level + 1,
+                outer_scope=self.__curr_symbol_table,
             )
 
             self.visit(ast_node.else_case)
-            self.__curr_scope_symbol_table = self.__curr_scope_symbol_table.outer_scope
+            self.__curr_symbol_table = self.__curr_symbol_table.outer_scope
 
     def __add_conditional_symbols_to_current_scope(self, ast_node, symbol_names):
         for i, (condition, _) in enumerate(ast_node.if_cases):
@@ -185,13 +185,13 @@ class SemanticAnalyzer(ASTNodeVisitor):
             if_elseif_symbol = ConditionalSymbol(name)
             symbol_names.append(if_elseif_symbol.name)
 
-            self.__curr_scope_symbol_table.add_symbol(if_elseif_symbol)
+            self.__curr_symbol_table.add_symbol(if_elseif_symbol)
 
         if ast_node.else_case is not None:
             else_symbol = ConditionalSymbol("else")
             symbol_names.append(else_symbol.name)
 
-            self.__curr_scope_symbol_table.add_symbol(else_symbol)
+            self.__curr_symbol_table.add_symbol(else_symbol)
 
     def visitWhileStatementNode(self, ast_node):
         TypeChecker.check_condition(
@@ -199,16 +199,16 @@ class SemanticAnalyzer(ASTNodeVisitor):
         )
 
         while_symbol = LoopSymbol("while")
-        self.__curr_scope_symbol_table.add_symbol(while_symbol)
+        self.__curr_symbol_table.add_symbol(while_symbol)
 
-        self.__curr_scope_symbol_table = ScopeSymbolTable(
+        self.__curr_symbol_table = SymbolTable(
             scope_name=while_symbol.name,
-            scope_level=self.__curr_scope_symbol_table.scope_level + 1,
-            outer_scope=self.__curr_scope_symbol_table,
+            scope_level=self.__curr_symbol_table.scope_level + 1,
+            outer_scope=self.__curr_symbol_table,
         )
 
         self.visit(ast_node.statement_list_node)
-        self.__curr_scope_symbol_table = self.__curr_scope_symbol_table.outer_scope
+        self.__curr_symbol_table = self.__curr_symbol_table.outer_scope
 
     def visitBreakStatementNode(self, ast_node):
         if not self.__is_in_loop():
@@ -225,15 +225,15 @@ class SemanticAnalyzer(ASTNodeVisitor):
             )
 
     def __is_in_loop(self):
-        curr_scope_symbol_table_cpy = copy.copy(self.__curr_scope_symbol_table)
+        curr_symbol_table_cpy = copy.copy(self.__curr_symbol_table)
 
-        while curr_scope_symbol_table_cpy.scope_name != "global":
-            if curr_scope_symbol_table_cpy.scope_name.startswith(
+        while curr_symbol_table_cpy.scope_name != "global":
+            if curr_symbol_table_cpy.scope_name.startswith(
                 "for"
-            ) or curr_scope_symbol_table_cpy.scope_name.startswith("while"):
+            ) or curr_symbol_table_cpy.scope_name.startswith("while"):
                 return True
 
-            curr_scope_symbol_table_cpy = curr_scope_symbol_table_cpy.outer_scope
+            curr_symbol_table_cpy = curr_symbol_table_cpy.outer_scope
 
         return False
 
@@ -252,12 +252,12 @@ class SemanticAnalyzer(ASTNodeVisitor):
         TypeChecker.check_iterable(iterable_type, ast_node.iterable.token)
 
         for_symbol = LoopSymbol("for")
-        self.__curr_scope_symbol_table.add_symbol(for_symbol)
+        self.__curr_symbol_table.add_symbol(for_symbol)
 
-        self.__curr_scope_symbol_table = ScopeSymbolTable(
+        self.__curr_symbol_table = SymbolTable(
             scope_name=for_symbol.name,
-            scope_level=self.__curr_scope_symbol_table.scope_level + 1,
-            outer_scope=self.__curr_scope_symbol_table,
+            scope_level=self.__curr_symbol_table.scope_level + 1,
+            outer_scope=self.__curr_symbol_table,
         )
 
         self.visit(ast_node.var_decl_statement_node)
@@ -272,12 +272,10 @@ class SemanticAnalyzer(ASTNodeVisitor):
         )
 
         self.visit(ast_node.statement_list_node)
-        self.__curr_scope_symbol_table = self.__curr_scope_symbol_table.outer_scope
+        self.__curr_symbol_table = self.__curr_symbol_table.outer_scope
 
     def visitVarDeclStatementNode(self, ast_node):
-        type_symbol = self.__curr_scope_symbol_table.get_symbol(
-            ast_node.var_type_node.val
-        )
+        type_symbol = self.__curr_symbol_table.get_symbol(ast_node.var_type_node.val)
 
         for variable in ast_node.variables:
             if isinstance(variable, VarNode):
@@ -294,16 +292,16 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
             var_symbol = VarSymbol(var_name, type_symbol)
             self.__has_identfier_declared(var_name, var_token)
-            self.__curr_scope_symbol_table.add_symbol(var_symbol)
+            self.__curr_symbol_table.add_symbol(var_symbol)
 
     def visitReturnStatementNode(self, ast_node):
         return_type = self.visit(ast_node.expr_node) if ast_node.expr_node else None
-        curr_scope_symbol_table_cpy = copy.copy(self.__curr_scope_symbol_table)
+        curr_symbol_table_cpy = copy.copy(self.__curr_symbol_table)
 
-        while curr_scope_symbol_table_cpy.scope_name != "global":
-            if curr_scope_symbol_table_cpy.scope_name.startswith("func"):
-                func_symbol = curr_scope_symbol_table_cpy.outer_scope.get_symbol(
-                    curr_scope_symbol_table_cpy.scope_name, check_outer_scope=False
+        while curr_symbol_table_cpy.scope_name != "global":
+            if curr_symbol_table_cpy.scope_name.startswith("func"):
+                func_symbol = curr_symbol_table_cpy.outer_scope.get_symbol(
+                    curr_symbol_table_cpy.scope_name, check_outer_scope=False
                 )
 
                 TypeChecker.check_return_statement(
@@ -313,18 +311,18 @@ class SemanticAnalyzer(ASTNodeVisitor):
                 self.__return_flag = True
                 return
 
-            curr_scope_symbol_table_cpy = curr_scope_symbol_table_cpy.outer_scope
+            curr_symbol_table_cpy = curr_symbol_table_cpy.outer_scope
 
         self.__error("Return statement outside function", ast_node.token)
 
     def __has_identfier_declared(self, identifier, identifier_token):
-        check_builtin_func = self.__curr_scope_symbol_table.get_symbol(
+        check_builtin_func = self.__curr_symbol_table.get_symbol(
             "func_" + identifier, check_outer_scope=True
         )
-        check_func = self.__curr_scope_symbol_table.get_symbol(
+        check_func = self.__curr_symbol_table.get_symbol(
             "func_" + identifier, check_outer_scope=False
         )
-        check_var = self.__curr_scope_symbol_table.get_symbol(
+        check_var = self.__curr_symbol_table.get_symbol(
             identifier, check_outer_scope=False
         )
 
@@ -344,21 +342,21 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
     def visitFuncDeclStatementNode(self, ast_node):
         self.__has_identfier_declared(ast_node.name, ast_node.token)
-        return_type_symbol = self.__curr_scope_symbol_table.get_symbol(
+        return_type_symbol = self.__curr_symbol_table.get_symbol(
             ast_node.return_type_node.val
         )
         func_symbol = FuncSymbol(ast_node.name, return_type_symbol)
 
-        self.__curr_scope_symbol_table.add_symbol(func_symbol)
-        self.__curr_scope_symbol_table = ScopeSymbolTable(
+        self.__curr_symbol_table.add_symbol(func_symbol)
+        self.__curr_symbol_table = SymbolTable(
             scope_name=func_symbol.name,
-            scope_level=self.__curr_scope_symbol_table.scope_level + 1,
-            outer_scope=self.__curr_scope_symbol_table,
+            scope_level=self.__curr_symbol_table.scope_level + 1,
+            outer_scope=self.__curr_symbol_table,
         )
         prev_param = None
 
         for param in ast_node.params:
-            param_type_symbol = self.__curr_scope_symbol_table.get_symbol(
+            param_type_symbol = self.__curr_symbol_table.get_symbol(
                 param.var_type_node.val
             )
 
@@ -380,7 +378,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
                 func_symbol.add_default_param()
 
             param_symbol = VarSymbol(param_name, param_type_symbol)
-            self.__curr_scope_symbol_table.add_symbol(param_symbol)
+            self.__curr_symbol_table.add_symbol(param_symbol)
 
             func_symbol.params.append(param_symbol)
             prev_param = param.var_node
@@ -395,7 +393,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
         else:
             self.__return_flag = False
 
-        self.__curr_scope_symbol_table = self.__curr_scope_symbol_table.outer_scope
+        self.__curr_symbol_table = self.__curr_symbol_table.outer_scope
 
     def visitStatementListNode(self, ast_node):
         for statement in ast_node.statements:
@@ -403,7 +401,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
     def visitProgramNode(self, ast_node):
         self.visit(ast_node.statement_list_node)
-        self.__curr_scope_symbol_table = self.__curr_scope_symbol_table.outer_scope
+        self.__curr_symbol_table = self.__curr_symbol_table.outer_scope
 
     def __error(self, error_message, token):
         raise SemanticError(

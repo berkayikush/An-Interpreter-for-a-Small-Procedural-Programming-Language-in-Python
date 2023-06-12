@@ -1,7 +1,7 @@
 from .tokens import Token
 
 
-class ScopeSymbolTable:
+class SymbolTable:
     def __init__(self, scope_name, scope_level, outer_scope=None):
         self.__scope_name = scope_name
         self.__scope_level = scope_level
@@ -27,20 +27,18 @@ class ScopeSymbolTable:
             "float": BuiltInTypeSymbol(Token.K_FLOAT),
             "bool": BuiltInTypeSymbol(Token.K_BOOL),
             "str": BuiltInTypeSymbol(Token.K_STR),
-            
+
             "func_print": BuiltInFuncSymbol("print"),
             "func_println": BuiltInFuncSymbol("println"),
             "func_input": BuiltInFuncSymbol("input", BuiltInTypeSymbol(Token.K_STR)),
-            "func_reverse": BuiltInFuncSymbol(
-                "reverse", BuiltInTypeSymbol(Token.K_STR)
-            ),
+            "func_reverse": BuiltInFuncSymbol("reverse", BuiltInTypeSymbol(Token.K_STR)),
+
             "func_len": BuiltInFuncSymbol("len", BuiltInTypeSymbol(Token.K_INT)),
             "func_pow": BuiltInFuncSymbol("pow", BuiltInTypeSymbol(Token.K_FLOAT)),
             "func_typeof": BuiltInFuncSymbol("typeof", BuiltInTypeSymbol(Token.K_STR)),
             "func_toint": BuiltInFuncSymbol("toint", BuiltInTypeSymbol(Token.K_INT)),
-            "func_tofloat": BuiltInFuncSymbol(
-                "tofloat", BuiltInTypeSymbol(Token.K_FLOAT)
-            ),
+
+            "func_tofloat": BuiltInFuncSymbol("tofloat", BuiltInTypeSymbol(Token.K_FLOAT)),
             "func_tobool": BuiltInFuncSymbol("tobool", BuiltInTypeSymbol(Token.K_BOOL)),
             "func_tostr": BuiltInFuncSymbol("tostr", BuiltInTypeSymbol(Token.K_STR)),
         }
