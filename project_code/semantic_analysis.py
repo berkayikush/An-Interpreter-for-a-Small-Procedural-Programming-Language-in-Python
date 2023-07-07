@@ -291,7 +291,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
                 var_token = variable.left_node.token
 
             var_symbol = VarSymbol(var_name, type_symbol)
-            self.__has_identfier_declared(var_name, var_token)
+            self.__has_identifier_declared(var_name, var_token)
             self.__curr_symbol_table.add_symbol(var_symbol)
 
     def visitReturnStatementNode(self, ast_node):
@@ -315,7 +315,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
 
         self.__error("Return statement outside function", ast_node.token)
 
-    def __has_identfier_declared(self, identifier, identifier_token):
+    def __has_identifier_declared(self, identifier, identifier_token):
         check_builtin_func = self.__curr_symbol_table.get_symbol(
             "func_" + identifier, check_outer_scope=True
         )
@@ -330,7 +330,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
             check_builtin_func, BuiltInFuncSymbol
         ):
             self.__error(
-                "A built-in function name cannot be used to declare neither nor variables nor functions",
+                "A built-in function name cannot be used to declare neither variables nor functions",
                 identifier_token,
             )
 
@@ -341,7 +341,7 @@ class SemanticAnalyzer(ASTNodeVisitor):
             )
 
     def visitFuncDeclStatementNode(self, ast_node):
-        self.__has_identfier_declared(ast_node.name, ast_node.token)
+        self.__has_identifier_declared(ast_node.name, ast_node.token)
         return_type_symbol = self.__curr_symbol_table.get_symbol(
             ast_node.return_type_node.val
         )
