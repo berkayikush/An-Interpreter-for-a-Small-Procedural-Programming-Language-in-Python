@@ -1,4 +1,4 @@
-# Compact Programming Language
+# The Compact Programming Language
 
 ![Programming_Language-Python-blue](https://img.shields.io/badge/Programming_Language-Python-blue.svg)
 ![Python_Version-3.11.4-brown](https://img.shields.io/badge/Python_Version-3.11.4-brown.svg)
@@ -6,7 +6,7 @@
 
 ## Overview
 
-Compact is a small programming language created by Berkay.
+Compact is a small procedural programming language explicitly created to be interpreted by my interpreter.
 
 It supports a range of fundamental programming concepts, including variable declaration,
 order of operations, conditional statements, nested loops, nested functions, and recursion.
