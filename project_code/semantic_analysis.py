@@ -290,8 +290,8 @@ class SemanticAnalyzer(ASTNodeVisitor):
                 var_name = variable.left_node.val
                 var_token = variable.left_node.token
 
-            var_symbol = VarSymbol(var_name, type_symbol)
             self.__has_identifier_declared(var_name, var_token)
+            var_symbol = VarSymbol(var_name, type_symbol)
             self.__curr_symbol_table.add_symbol(var_symbol)
 
     def visitReturnStatementNode(self, ast_node):
