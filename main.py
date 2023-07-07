@@ -37,7 +37,12 @@ def open_program_file():
 
 
 def main():
-    lexer = Lexer(open_program_file())
+    text = open_program_file()
+
+    if not text:
+        return
+
+    lexer = Lexer(text)
 
     try:
         parser = Parser(lexer)
